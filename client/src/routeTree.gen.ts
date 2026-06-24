@@ -12,12 +12,12 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as authenticatedRouteRouteImport } from './routes/(authenticated)/route'
 import { Route as authenticatedIndexRouteImport } from './routes/(authenticated)/index'
-import { Route as authenticatedTableExportRouteImport } from './routes/(authenticated)/table-export'
 import { Route as authenticatedStylesRouteImport } from './routes/(authenticated)/styles'
+import { Route as authenticatedPeopleLookupRouteImport } from './routes/(authenticated)/people-lookup'
 import { Route as authenticatedNotificationRouteImport } from './routes/(authenticated)/notification'
 import { Route as authenticatedMeRouteImport } from './routes/(authenticated)/me'
 import { Route as authenticatedFormRouteImport } from './routes/(authenticated)/form'
-import { Route as authenticatedFetchRouteImport } from './routes/(authenticated)/fetch'
+import { Route as authenticatedPeopleLookupIdRouteImport } from './routes/(authenticated)/people-lookup_.$id'
 
 const AboutRoute = AboutRouteImport.update({
   id: '/about',
@@ -33,17 +33,17 @@ const authenticatedIndexRoute = authenticatedIndexRouteImport.update({
   path: '/',
   getParentRoute: () => authenticatedRouteRoute,
 } as any)
-const authenticatedTableExportRoute =
-  authenticatedTableExportRouteImport.update({
-    id: '/table-export',
-    path: '/table-export',
-    getParentRoute: () => authenticatedRouteRoute,
-  } as any)
 const authenticatedStylesRoute = authenticatedStylesRouteImport.update({
   id: '/styles',
   path: '/styles',
   getParentRoute: () => authenticatedRouteRoute,
 } as any)
+const authenticatedPeopleLookupRoute =
+  authenticatedPeopleLookupRouteImport.update({
+    id: '/people-lookup',
+    path: '/people-lookup',
+    getParentRoute: () => authenticatedRouteRoute,
+  } as any)
 const authenticatedNotificationRoute =
   authenticatedNotificationRouteImport.update({
     id: '/notification',
@@ -60,76 +60,77 @@ const authenticatedFormRoute = authenticatedFormRouteImport.update({
   path: '/form',
   getParentRoute: () => authenticatedRouteRoute,
 } as any)
-const authenticatedFetchRoute = authenticatedFetchRouteImport.update({
-  id: '/fetch',
-  path: '/fetch',
-  getParentRoute: () => authenticatedRouteRoute,
-} as any)
+const authenticatedPeopleLookupIdRoute =
+  authenticatedPeopleLookupIdRouteImport.update({
+    id: '/people-lookup_/$id',
+    path: '/people-lookup/$id',
+    getParentRoute: () => authenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/about': typeof AboutRoute
-  '/fetch': typeof authenticatedFetchRoute
   '/form': typeof authenticatedFormRoute
   '/me': typeof authenticatedMeRoute
   '/notification': typeof authenticatedNotificationRoute
+  '/people-lookup': typeof authenticatedPeopleLookupRoute
   '/styles': typeof authenticatedStylesRoute
-  '/table-export': typeof authenticatedTableExportRoute
   '/': typeof authenticatedIndexRoute
+  '/people-lookup/$id': typeof authenticatedPeopleLookupIdRoute
 }
 export interface FileRoutesByTo {
   '/about': typeof AboutRoute
-  '/fetch': typeof authenticatedFetchRoute
   '/form': typeof authenticatedFormRoute
   '/me': typeof authenticatedMeRoute
   '/notification': typeof authenticatedNotificationRoute
+  '/people-lookup': typeof authenticatedPeopleLookupRoute
   '/styles': typeof authenticatedStylesRoute
-  '/table-export': typeof authenticatedTableExportRoute
   '/': typeof authenticatedIndexRoute
+  '/people-lookup/$id': typeof authenticatedPeopleLookupIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/(authenticated)': typeof authenticatedRouteRouteWithChildren
   '/about': typeof AboutRoute
-  '/(authenticated)/fetch': typeof authenticatedFetchRoute
   '/(authenticated)/form': typeof authenticatedFormRoute
   '/(authenticated)/me': typeof authenticatedMeRoute
   '/(authenticated)/notification': typeof authenticatedNotificationRoute
+  '/(authenticated)/people-lookup': typeof authenticatedPeopleLookupRoute
   '/(authenticated)/styles': typeof authenticatedStylesRoute
-  '/(authenticated)/table-export': typeof authenticatedTableExportRoute
   '/(authenticated)/': typeof authenticatedIndexRoute
+  '/(authenticated)/people-lookup_/$id': typeof authenticatedPeopleLookupIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/about'
-    | '/fetch'
     | '/form'
     | '/me'
     | '/notification'
+    | '/people-lookup'
     | '/styles'
-    | '/table-export'
     | '/'
+    | '/people-lookup/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/about'
-    | '/fetch'
     | '/form'
     | '/me'
     | '/notification'
+    | '/people-lookup'
     | '/styles'
-    | '/table-export'
     | '/'
+    | '/people-lookup/$id'
   id:
     | '__root__'
     | '/(authenticated)'
     | '/about'
-    | '/(authenticated)/fetch'
     | '/(authenticated)/form'
     | '/(authenticated)/me'
     | '/(authenticated)/notification'
+    | '/(authenticated)/people-lookup'
     | '/(authenticated)/styles'
-    | '/(authenticated)/table-export'
     | '/(authenticated)/'
+    | '/(authenticated)/people-lookup_/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -160,18 +161,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof authenticatedIndexRouteImport
       parentRoute: typeof authenticatedRouteRoute
     }
-    '/(authenticated)/table-export': {
-      id: '/(authenticated)/table-export'
-      path: '/table-export'
-      fullPath: '/table-export'
-      preLoaderRoute: typeof authenticatedTableExportRouteImport
-      parentRoute: typeof authenticatedRouteRoute
-    }
     '/(authenticated)/styles': {
       id: '/(authenticated)/styles'
       path: '/styles'
       fullPath: '/styles'
       preLoaderRoute: typeof authenticatedStylesRouteImport
+      parentRoute: typeof authenticatedRouteRoute
+    }
+    '/(authenticated)/people-lookup': {
+      id: '/(authenticated)/people-lookup'
+      path: '/people-lookup'
+      fullPath: '/people-lookup'
+      preLoaderRoute: typeof authenticatedPeopleLookupRouteImport
       parentRoute: typeof authenticatedRouteRoute
     }
     '/(authenticated)/notification': {
@@ -195,34 +196,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof authenticatedFormRouteImport
       parentRoute: typeof authenticatedRouteRoute
     }
-    '/(authenticated)/fetch': {
-      id: '/(authenticated)/fetch'
-      path: '/fetch'
-      fullPath: '/fetch'
-      preLoaderRoute: typeof authenticatedFetchRouteImport
+    '/(authenticated)/people-lookup_/$id': {
+      id: '/(authenticated)/people-lookup_/$id'
+      path: '/people-lookup/$id'
+      fullPath: '/people-lookup/$id'
+      preLoaderRoute: typeof authenticatedPeopleLookupIdRouteImport
       parentRoute: typeof authenticatedRouteRoute
     }
   }
 }
 
 interface authenticatedRouteRouteChildren {
-  authenticatedFetchRoute: typeof authenticatedFetchRoute
   authenticatedFormRoute: typeof authenticatedFormRoute
   authenticatedMeRoute: typeof authenticatedMeRoute
   authenticatedNotificationRoute: typeof authenticatedNotificationRoute
+  authenticatedPeopleLookupRoute: typeof authenticatedPeopleLookupRoute
   authenticatedStylesRoute: typeof authenticatedStylesRoute
-  authenticatedTableExportRoute: typeof authenticatedTableExportRoute
   authenticatedIndexRoute: typeof authenticatedIndexRoute
+  authenticatedPeopleLookupIdRoute: typeof authenticatedPeopleLookupIdRoute
 }
 
 const authenticatedRouteRouteChildren: authenticatedRouteRouteChildren = {
-  authenticatedFetchRoute: authenticatedFetchRoute,
   authenticatedFormRoute: authenticatedFormRoute,
   authenticatedMeRoute: authenticatedMeRoute,
   authenticatedNotificationRoute: authenticatedNotificationRoute,
+  authenticatedPeopleLookupRoute: authenticatedPeopleLookupRoute,
   authenticatedStylesRoute: authenticatedStylesRoute,
-  authenticatedTableExportRoute: authenticatedTableExportRoute,
   authenticatedIndexRoute: authenticatedIndexRoute,
+  authenticatedPeopleLookupIdRoute: authenticatedPeopleLookupIdRoute,
 }
 
 const authenticatedRouteRouteWithChildren =

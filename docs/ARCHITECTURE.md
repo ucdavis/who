@@ -11,7 +11,7 @@ This template uses:
 
 In production, ASP.NET Core serves the built frontend from `server/wwwroot`.
 
-Cloud deployments use Azure App Service, Azure SQL, workspace-based Application Insights, and Log Analytics. The deployment scaffold supports only `test` and `prod` environments.
+Cloud deployments use Azure App Service, workspace-based Application Insights, and Log Analytics. The deployment scaffold supports only `test` and `prod` environments.
 
 ## Development Request Flow
 
@@ -66,7 +66,7 @@ Zip deploy to Azure App Service
     ↓
 App Service serves /api, auth, health, static assets, and SPA fallback
     ↓
-Azure SQL, Application Insights, and Log Analytics
+Application Insights and Log Analytics
 ```
 
 Each deployment validates the expected subscription ID and requires the target resource group to end with the matching environment suffix before resources are created.
@@ -119,8 +119,8 @@ Responsibilities:
 
 Responsibilities:
 
-- Creates Azure SQL, Linux App Service, Log Analytics, and workspace-based Application Insights
-- Applies generic runtime settings for auth, notifications, SMTP, database connectivity, and optional OTLP export
+- Creates Linux App Service, Log Analytics, and workspace-based Application Insights
+- Applies generic runtime settings for auth, notifications, SMTP, and optional OTLP export
 - Emits deployment outputs consumed by scripts and GitHub Actions
 
 ### `infrastructure/azure/github-oidc.bicep`
@@ -214,18 +214,6 @@ Check:
 - ASP.NET Core is running on `:5165`
 - the proxy targets in `client/vite.config.ts` still match the backend URL
 - `/health` responds on the backend
-
-### Backend exits immediately during startup
-
-This template runs database initialization at startup. If SQL Server is not available, the app exits before the browser handoff completes.
-
-Common local fix:
-
-```bash
-npm run db:up
-```
-
-For cloud first-start migration behavior, see [First deployment](../README.customization.md#first-deployment).
 
 ### Auth cookies fail after scaling out
 

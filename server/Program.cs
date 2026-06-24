@@ -1,11 +1,9 @@
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Diagnostics.HealthChecks;
-using Server.Core.Data;
 using Server.Core.Notification;
 using Server.Helpers;
+using Server.Models.PeopleLookup;
 using Server.Services;
 
 WebApplication? app = null;
@@ -37,35 +35,29 @@ try
 
     builder.Services.AddControllers();
     builder.Services.AddNotificationServices(builder.Configuration);
+    builder.Services.Configure<PeopleLookupOptions>(builder.Configuration.GetSection(PeopleLookupOptions.SectionName));
+    builder.Services.AddHttpClient("identity", client =>
+        {
+            client.Timeout = TimeSpan.FromSeconds(30);
+        })
+        .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
+        {
+            PooledConnectionLifetime = TimeSpan.FromMinutes(2),
+            PooledConnectionIdleTimeout = TimeSpan.FromMinutes(1),
+            MaxConnectionsPerServer = 10
+        });
 
     // Add response caching for pages that opt-in
     // https://learn.microsoft.com/en-us/aspnet/core/performance/caching/middleware?view=aspnetcore-9.0
     builder.Services.AddResponseCaching();
 
     // add scoped services here
-    builder.Services.AddScoped<IDbInitializer, DbInitializer>();
     builder.Services.AddScoped<IUserService, UserService>();
+    builder.Services.AddScoped<IIdentityLookupService, IdentityLookupService>();
+    builder.Services.AddScoped<IPeopleLookupPermissionService, PeopleLookupPermissionService>();
     // add auth policies here
 
-    // add db context (check secrets first, then config, then default)
-    var conn = builder.Configuration["DB_CONNECTION"]
-                ?? builder.Configuration.GetConnectionString("DefaultConnection");
-
-    if (string.IsNullOrWhiteSpace(conn))
-    {
-        const string message = "No database connection string configured. Set the DB_CONNECTION environment variable or " +
-                               "configure ConnectionStrings:DefaultConnection. For host-based local development use " +
-                               "Server=localhost,14333;Database=AppDb;User ID=sa;Password=LocalDev123!;Encrypt=False;TrustServerCertificate=True;. " +
-                               "Inside the DevContainer use Server=sql,1433;Database=AppDb;User ID=sa;Password=LocalDev123!;Encrypt=False;TrustServerCertificate=True;.";
-
-        throw new InvalidOperationException(message);
-    }
-
-    builder.Services.AddDbContextPool<AppDbContext>(o => o.UseSqlServer(conn, opt => opt.MigrationsAssembly("server.core")));
-
-    builder.Services
-        .AddHealthChecks()
-        .AddDbContextCheck<AppDbContext>();
+    builder.Services.AddHealthChecks();
 
     // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
     builder.Services.AddEndpointsApiExplorer();
@@ -84,14 +76,6 @@ try
     app = builder.Build();
 
     app.Logger.LogInformation("Starting up {AppName} in {Environment} environment", app.Environment.ApplicationName, app.Environment.EnvironmentName);
-
-    // do db migrations at startup
-    using (var scope = app.Services.CreateScope())
-    {
-        var init = scope.ServiceProvider.GetRequiredService<IDbInitializer>();
-        var env = scope.ServiceProvider.GetRequiredService<IHostEnvironment>();
-        await init.InitializeAsync(env.IsDevelopment());
-    }
 
     app.UseForwardedHeaders();
 
@@ -159,7 +143,7 @@ try
 
     var healthEndpoint = app.MapHealthChecks("/health");
 
-    // Cache the health check response for 10 seconds to protect the database from rapid polling.
+    // Cache the health check response for 10 seconds to protect rapid polling.
     healthEndpoint.WithMetadata(new ResponseCacheAttribute
     {
         Duration = 10,

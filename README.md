@@ -25,7 +25,7 @@ A full-stack web application template featuring a .NET 10 backend with React/Vit
    - Open the project folder in Visual Studio Code.
    - Click the prompt to open in container (or manually select from the command palette).
 
-_Using the DevContainer is optional, but it will get you the right version of dotnet + node, plus install all dependencies and setup a local SQL instance for you_
+_Using the DevContainer is optional, but it will get you the right version of dotnet + node, and install all dependencies for you_
 
 3. **Start the application**
 
@@ -36,30 +36,26 @@ _Using the DevContainer is optional, but it will get you the right version of do
    Prerequisites:
    - [.NET 10 SDK](https://dotnet.microsoft.com/download)
    - [Node.js 22+](https://nodejs.org/) (includes npm)
-   - Docker (for the local SQL Server container)
 
    Install dependencies and start the app:
    ```bash
    npm install
    cd client && npm install && cd ..
-   npm run db:up
    npm start
    ```
 
-   `npm run db:up` starts the SQL Server container from the same Compose file used by the DevContainer. `npm start` starts the .NET backend on port `5165` with a CLI-specific launch profile, waits for health check, and then starts the Vite dev server on port `5173` which opens the browser.
+   `npm start` starts the .NET backend on port `5165` with a CLI-specific launch profile, waits for health check, and then starts the Vite dev server on port `5173` which opens the browser.
 
    **Visual Studio (Windows)**:
 
    Prerequisites:
    - Visual Studio 2026 version 18.0 or later (for `net10.0` support)
    - [Node.js 22+](https://nodejs.org/) (includes npm)
-   - Docker (for the local SQL Server container)
 
-   Install dependencies and start the database:
+   Install dependencies:
    ```bash
    npm install
    cd client && npm install && cd ..
-   npm run db:up
    ```
 
    Then open `app.sln`, set the `server` project as the startup project, and press `F5`. `SpaProxy` starts Vite if needed and redirects the browser to the frontend dev server.
@@ -69,13 +65,11 @@ _Using the DevContainer is optional, but it will get you the right version of do
    Prerequisites:
    - [.NET 10 SDK](https://dotnet.microsoft.com/download)
    - [Node.js 22+](https://nodejs.org/) (includes npm)
-   - Docker (for the local SQL Server container)
 
-   Install dependencies and start the database:
+   Install dependencies:
    ```bash
    npm install
    cd client && npm install && cd ..
-   npm run db:up
    ```
 
    Then open the repo root in VS Code, install the recommended extensions when prompted (at minimum the Microsoft C# extension), choose `Full Stack: VS Code` in **Run and Debug**, and press `F5`. VS Code builds and launches the backend with the `http-cli` launch profile, starts Vite after the backend health check passes, and opens the app in your default external browser at `http://localhost:5173`. For backend-only debugging, choose `Backend: ASP.NET Core + Swagger`.
@@ -89,28 +83,6 @@ In development, the frontend runs from **http://localhost:5173** and proxies bac
 - **API Documentation (Swagger)**: http://localhost:5165/swagger
 - **Health Check**: http://localhost:5165/health
 - **Visual Studio F5**: launches through the backend profile, then redirects to the Vite dev server on `:5173`
-
-### Database configuration
-
-The backend requires a SQL Server connection string.
-
-- Outside DevContainer, the default development connection points to the SQL Server container published on `localhost:14333`.
-- Inside DevContainer, `devcontainer.json` overrides `DB_CONNECTION` to use the internal Docker hostname `sql:1433`.
-
-When you want to specify your own DB connection, provide it by setting the `DB_CONNECTION` environment variable (for example in a `.env` file) or by updating `ConnectionStrings:DefaultConnection` in `appsettings.*.json` (`.env` is recommended)
-
-To run only the database outside DevContainer:
-
-```bash
-npm run db:up
-```
-
-This runs the `sql` service from `.devcontainer/docker-compose.yml` and exposes SQL Server on `localhost:14333`.
-
-Useful companion commands:
-
-- `npm run db:logs` to watch SQL Server startup logs
-- `npm run db:down` to stop the container when you're done
 
 ### Auth Configuration
 
@@ -136,7 +108,7 @@ Before using this template in a real app, replace `G-XXXXXXXXXX` in `client/inde
 
 ### Health check
 
-The health check endpoint (`/health`) is configured to return the status of the application and its dependencies. It includes a database health check to ensure the SQL Server connection is healthy. See [Health Checks](https://learn.microsoft.com/en-us/aspnet/core/host-and-deploy/health-checks?view=aspnetcore-10.0#entity-framework-core-dbcontext-probe).
+The health check endpoint (`/health`) is configured to return the status of the application.
 
 ## Azure Deployment
 
@@ -191,7 +163,7 @@ The VS Code flow intentionally uses the `http-cli` launch profile instead of the
 
 - Run `dotnet test` from the repository root to execute the .NET test project included in `app.sln`.
 - Alternatively, target the project directly with `dotnet test tests/server.tests/server.tests.csproj`.
-- The tests use EF Core's in-memory provider (see `tests/server.tests/TestDbContextFactory.cs`) so no SQL Server instance is required.
+- The tests do not require an external database.
 
 ## Updating Dependencies
 
@@ -218,7 +190,7 @@ You can update individual packages or you can use the `--upgrade` flag to update
 dotnet-outdated --upgrade --version-lock Major
 ```
 
-If you update `Microsoft.EntityFrameworkCore.Design` or another package that a tool depends on, you'll want to update that tool as well to match, ex: `dotnet tool update dotnet-ef --local --version 8.0.21`. That will update it for you but also set the value in our `dotnet-tools.json` so it's consistent for everyone.
+If you update a package that a tool depends on, update the matching tool version as well so local development stays consistent.
 
 And as always, after updating dependencies, make sure to run `dotnet build` and `dotnet test` to verify everything is working.
 

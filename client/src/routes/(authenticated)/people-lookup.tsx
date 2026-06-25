@@ -114,8 +114,7 @@ const searchTypeLengthHints: Partial<Record<PeopleLookupSearchType, number[]>> =
   };
 
 const emailDetectionRegex = /\b[\w%+.-]+@[\d.a-z-]+\.[a-z]{2,}\b/i;
-const tokenDetectionRegex =
-  /[\w%+.-]+@[\d.a-z-]+\.[a-z]{2,}|[\da-z-]+/gi;
+const tokenDetectionRegex = /[\w%+.-]+@[\d.a-z-]+\.[a-z]{2,}|[\da-z-]+/gi;
 
 const standardCsvColumns: CsvColumn<PeopleSearchResult>[] = [
   { header: 'Search', key: 'searchValue' },
@@ -494,11 +493,14 @@ export function PeopleLookup() {
       : lookupMutation.error?.message;
 
   return (
-    <div className="min-h-screen bg-base-100">
-      <main className="container mx-auto px-4 py-16">
-        <div className="mx-auto max-w-7xl space-y-8">
+    <div>
+      <main className="container">
+        <div className="mx-auto pt-20 space-y-8">
           <header className="space-y-3">
-            <h1 className="text-4xl font-bold">Bulk User Lookup</h1>
+            <div className="flex items-center gap-3">
+              <img alt="Who" className="h-10 w-10" src="/who.svg" />
+              <h1 className="text-4xl font-bold">Bulk User Lookup</h1>
+            </div>
             <p className="max-w-3xl text-base-content/70">
               Choose what to search, paste the values, and submit the lookup.
               Email mode can accept Outlook text and will extract email
@@ -506,7 +508,7 @@ export function PeopleLookup() {
             </p>
           </header>
 
-          <section className="card bg-base-100 shadow-xl">
+          <section className="card shadow-xl">
             <div className="card-body">
               <form
                 className="space-y-6"
@@ -517,28 +519,34 @@ export function PeopleLookup() {
                 }}
                 onSubmit={submitLookup}
               >
-                <div className="grid gap-4 lg:grid-cols-[minmax(16rem,0.34fr)_1fr]">
-                  <label className="form-control w-full">
+                <div className="space-y-4">
+                  <div className="form-control w-full">
                     <span className="label-text mb-2 font-medium">
                       Search For
                     </span>
-                    <select
-                      className="select select-bordered w-full"
-                      onChange={(event) =>
-                        setSelectedSearchType(
-                          event.target.value as PeopleLookupSearchType
-                        )
-                      }
-                      value={activeSearchType}
+                    <div
+                      aria-label="Search for"
+                      className="tabs tabs-box w-full overflow-x-auto"
+                      role="tablist"
                     >
                       {searchOptions.map((option) => (
-                        <option key={option.value} value={option.value}>
+                        <button
+                          aria-selected={activeSearchType === option.value}
+                          className={`tab h-auto min-h-10 whitespace-nowrap ${
+                            activeSearchType === option.value
+                              ? 'tab-active'
+                              : ''
+                          }`}
+                          key={option.value}
+                          onClick={() => setSelectedSearchType(option.value)}
+                          role="tab"
+                          type="button"
+                        >
                           {option.label}
-                        </option>
+                        </button>
                       ))}
-                    </select>
-                  </label>
-
+                    </div>
+                  </div>
                   <label className="form-control w-full">
                     <span className="label-text mb-2 font-medium">Values</span>
                     <textarea
@@ -624,7 +632,7 @@ export function PeopleLookup() {
             <section className="space-y-4">
               <div>
                 <h2 className="text-2xl font-bold">Results</h2>
-                <p className="text-sm text-base-content/70">
+                <p className="text-sm">
                   Use the table search to filter visible rows, open Details for
                   the full row, or export all current results.
                 </p>

@@ -3,14 +3,18 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
 import { RouterContext } from '../main.tsx';
 import { AnalyticsListener } from '@/shared/analytics/AnalyticsListener.tsx';
+import { AppFooter } from '@/shared/AppFooter.tsx';
 
 const RootLayout = () => (
-  <>
+  <div className="flex min-h-dvh flex-col">
     <AnalyticsListener />
-    <Outlet />
+    <main className="flex-1">
+      <Outlet />
+    </main>
+    <AppFooter />
     <ReactQueryDevtools buttonPosition="top-right" />
     <TanStackRouterDevtools position="bottom-right" />
-  </>
+  </div>
 );
 
 export const Route = createRootRouteWithContext<RouterContext>()({

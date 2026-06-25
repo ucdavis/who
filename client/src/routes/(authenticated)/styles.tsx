@@ -6,7 +6,7 @@ export const Route = createFileRoute('/(authenticated)/styles')({
 
 function RouteComponent() {
   return (
-    <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div className="flex items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
       {/* Homepage Link */}
       <div className="absolute top-4 left-4 z-10">
         <Link className="btn btn-ghost btn-sm" to="/">

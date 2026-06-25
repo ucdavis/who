@@ -31,35 +31,27 @@ function PeopleLookupDetail() {
       : detailQuery.error?.message;
 
   return (
-    <div className="min-h-screen bg-base-100">
-      <div className="absolute top-4 left-4 z-10">
-        <Link className="btn btn-ghost btn-sm" to="/">
-          <svg
-            className="mr-2 h-4 w-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              d="M15 19l-7-7 7-7"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-            />
-          </svg>
-          Lookup
-        </Link>
-      </div>
-
-      <main className="container mx-auto px-4 py-16">
+    <div>
+      <main className="container">
         <div className="mx-auto max-w-4xl space-y-6">
-          <header className="space-y-2">
-            <h1 className="text-4xl font-bold">Person Details</h1>
-            <p className="text-base-content/70">
-              Lookup details for{' '}
-              <span className="font-medium">{decodedId}</span>
-            </p>
+          <header className="pt-10">
+            <Link className="btn btn-default btn-sm" to="/">
+              <svg
+                className="mr-2 h-4 w-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M15 19l-7-7 7-7"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                />
+              </svg>
+              Lookup
+            </Link>
           </header>
 
           {detailQuery.isLoading ? (
@@ -96,15 +88,6 @@ function PeopleLookupDetail() {
                       <p className="text-base-content/70">{result.email}</p>
                     ) : null}
                   </div>
-                  {result.kerbId ? (
-                    <Link
-                      className="btn btn-outline btn-sm"
-                      params={{ id: result.kerbId }}
-                      to="/people-lookup/$id"
-                    >
-                      Canonical Link
-                    </Link>
-                  ) : null}
                 </div>
 
                 <div className="mt-4">

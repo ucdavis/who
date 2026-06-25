@@ -175,7 +175,7 @@ export function PeopleDetailsPanel({
     <div className="space-y-5">
       {activeAffiliations.length > 0 ? (
         <section className="space-y-2">
-          <h3 className="text-xs font-semibold uppercase tracking-wide text-base-content/60">
+          <h3 className="text-xs font-semibold uppercase tracking-wide text-base-content/80">
             Affiliations
           </h3>
           <div className="flex flex-wrap gap-2">
@@ -200,7 +200,7 @@ export function PeopleDetailsPanel({
 
         return (
           <section className="space-y-2" key={group}>
-            <h3 className="text-xs font-semibold uppercase tracking-wide text-base-content/60">
+            <h3 className="text-xs font-semibold uppercase tracking-wide text-base-content/80">
               {detailGroupLabels[group]}
             </h3>
             <div className="grid gap-2 sm:grid-cols-2">
@@ -224,12 +224,10 @@ function DetailValue({ label, value }: { label: string; value: string }) {
     <div className="group rounded-lg border border-base-300 bg-base-200/30 px-3 py-2">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <div className="text-xs font-medium uppercase tracking-wide text-base-content/50">
+          <div className="text-xs font-medium uppercase tracking-wide text-base-content/90">
             {label}
           </div>
-          <div className="mt-1 break-words text-sm font-medium text-base-content">
-            {value}
-          </div>
+          <div className="break-words font-medium">{value}</div>
         </div>
         <CopyValueButton label={label} value={value} />
       </div>

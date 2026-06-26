@@ -56,7 +56,7 @@ interface PeopleLookupSearchOption {
 const standardSearchOptions: PeopleLookupSearchOption[] = [
   {
     label: 'Email',
-    placeholder: 'Paste emails or Outlook text',
+    placeholder: 'Paste emails or Outlook text; emails are extracted automatically',
     value: 'email',
   },
   {
@@ -483,8 +483,8 @@ export function PeopleLookup() {
             </div>
             <p className="max-w-3xl text-base-content/70">
               Choose what to search, paste the values, and submit the lookup.
-              Email mode can accept Outlook text and will extract email
-              addresses automatically.
+              When you paste text, we will try to detect the search type. Review
+              the selected tab before submitting.
             </p>
           </header>
 

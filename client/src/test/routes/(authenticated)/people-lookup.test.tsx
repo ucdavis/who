@@ -4,7 +4,7 @@ import { detectSearchTypeFromText } from '@/routes/(authenticated)/people-lookup
 const searchOptions: Parameters<typeof detectSearchTypeFromText>[1] = [
   {
     label: 'Email',
-    placeholder: 'Paste emails or Outlook text',
+    placeholder: 'Paste emails or Outlook text; emails are extracted automatically',
     value: 'email',
   },
   {

@@ -120,7 +120,7 @@ Responsibilities:
 Responsibilities:
 
 - Creates Linux App Service, Log Analytics, and workspace-based Application Insights
-- Applies generic runtime settings for auth, notifications, SMTP, and optional OTLP export
+- Applies generic runtime settings for auth and optional OTLP export
 - Emits deployment outputs consumed by scripts and GitHub Actions
 
 ### `infrastructure/azure/github-oidc.bicep`

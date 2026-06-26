@@ -36,7 +36,6 @@
     <Content Remove="$(SpaRoot)**" />
     <None Remove="$(SpaRoot)**" />
     <None Include="$(SpaRoot)**" Exclude="$(SpaRoot)node_modules\**" LinkBase="client" />
-    <ProjectReference Include="..\server.core\server.core.csproj" />
   </ItemGroup>
 
   <Target Name="DebugEnsureNodeEnv" BeforeTargets="Build" Condition="'$(Configuration)' == 'Debug' and !Exists('$(SpaRoot)node_modules')">

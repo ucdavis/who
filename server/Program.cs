@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Mvc;
-using Server.Core.Notification;
 using Server.Helpers;
 using Server.Models.PeopleLookup;
 using Server.Services;
@@ -34,7 +33,6 @@ try
     builder.Services.AddAuthenticationServices(builder.Configuration);
 
     builder.Services.AddControllers();
-    builder.Services.AddNotificationServices(builder.Configuration);
     builder.Services.Configure<PeopleLookupOptions>(builder.Configuration.GetSection(PeopleLookupOptions.SectionName));
     builder.Services.AddHttpClient("identity", client =>
         {

@@ -19,10 +19,6 @@ param webSkuTier string
 @description('Linux App Service runtime stack.')
 param linuxFxVersion string
 
-@secure()
-@description('SQL connection string.')
-param sqlConnectionString string
-
 @description('Environment name for ASP.NET Core.')
 param environmentName string
 
@@ -31,15 +27,6 @@ param appInsightsConnectionString string
 
 @description('Application Insights instrumentation key for platform telemetry.')
 param appInsightsInstrumentationKey string
-
-@description('Base URL used in generated notification emails.')
-param notificationBaseUrl string
-
-@description('Default application name used in generated notifications.')
-param notificationDefaultAppName string
-
-@description('Default button text used in generated notifications.')
-param notificationDefaultButtonText string
 
 @description('Entra ID application client ID used by Microsoft Identity Web.')
 param authClientId string
@@ -55,37 +42,6 @@ param authInstance string
 
 @description('OpenID Connect callback path used by Microsoft Identity Web.')
 param authCallbackPath string
-
-@description('SMTP host for outbound email.')
-param smtpHost string
-
-@description('SMTP port for outbound email.')
-param smtpPort int
-
-@description('SMTP timeout in milliseconds.')
-param smtpTimeout int
-
-@description('Whether SMTP should use SSL.')
-param smtpUseSsl bool
-
-@description('SMTP username for outbound email.')
-param smtpUsername string
-
-@secure()
-@description('SMTP password for outbound email.')
-param smtpPassword string
-
-@description('From email address for outbound email.')
-param smtpFromEmail string
-
-@description('From display name for outbound email.')
-param smtpFromName string
-
-@description('Reply-to email address for outbound email.')
-param smtpReplyToEmail string
-
-@description('BCC email address for outbound email.')
-param smtpBccEmail string
 
 @description('Optional OTLP exporter endpoint.')
 param otelExporterOtlpEndpoint string
@@ -109,10 +65,6 @@ var baseAppSettings = [
     value: environmentName
   }
   {
-    name: 'DB_CONNECTION'
-    value: sqlConnectionString
-  }
-  {
     name: 'WEBSITE_RUN_FROM_PACKAGE'
     value: '1'
   }
@@ -127,18 +79,6 @@ var baseAppSettings = [
   {
     name: 'APPLICATIONINSIGHTS_AGENT_EXTENSION_VERSION'
     value: '~3'
-  }
-  {
-    name: 'Notification__BaseUrl'
-    value: notificationBaseUrl
-  }
-  {
-    name: 'Notification__DefaultAppName'
-    value: notificationDefaultAppName
-  }
-  {
-    name: 'Notification__DefaultButtonText'
-    value: notificationDefaultButtonText
   }
   {
     name: 'Auth__ClientId'
@@ -159,46 +99,6 @@ var baseAppSettings = [
   {
     name: 'Auth__CallbackPath'
     value: authCallbackPath
-  }
-  {
-    name: 'Smtp__Host'
-    value: smtpHost
-  }
-  {
-    name: 'Smtp__Port'
-    value: string(smtpPort)
-  }
-  {
-    name: 'Smtp__Timeout'
-    value: string(smtpTimeout)
-  }
-  {
-    name: 'Smtp__UseSsl'
-    value: string(smtpUseSsl)
-  }
-  {
-    name: 'Smtp__Username'
-    value: smtpUsername
-  }
-  {
-    name: 'Smtp__Password'
-    value: smtpPassword
-  }
-  {
-    name: 'Smtp__FromEmail'
-    value: smtpFromEmail
-  }
-  {
-    name: 'Smtp__FromName'
-    value: smtpFromName
-  }
-  {
-    name: 'Smtp__ReplyToEmail'
-    value: smtpReplyToEmail
-  }
-  {
-    name: 'Smtp__BccEmail'
-    value: smtpBccEmail
   }
 ]
 

@@ -64,7 +64,7 @@ function FormComponent() {
   });
 
   return (
-    <div className="min-h-screen bg-base-100">
+    <div className="bg-base-100">
       {/* Homepage Link */}
       <div className="absolute top-4 left-4 z-10">
         <Link className="btn btn-ghost btn-sm" to="/">
@@ -86,7 +86,7 @@ function FormComponent() {
         </Link>
       </div>
 
-      <div className="container mx-auto px-4 py-16">
+      <div className="container">
         {/* Header Section */}
         <header className="text-center mb-16">
           <h1 className="text-5xl font-bold mb-4">Form Example</h1>

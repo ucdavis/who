@@ -9,7 +9,6 @@ src/
 │   ├── index.tsx
 │   ├── about.tsx
 │   └── (authenticated)/
-│       ├── fetch.tsx                 # Route component
 │       └── dashboard.tsx             # Route component
 ├── test/
 │   ├── setup.ts                      # Global test setup
@@ -19,7 +18,6 @@ src/
 │       ├── index.test.tsx
 │       ├── about.test.tsx
 │       └── (authenticated)/
-│           ├── fetch.test.tsx        # ✅ Test for fetch route
 │           └── dashboard.test.tsx    # ✅ Test for dashboard route
 ```
 
@@ -37,6 +35,6 @@ src/
 npm test
 
 # Run specific test file
-npm test -- fetch.test
+npm test -- notification.test
 
 ```

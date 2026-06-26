@@ -99,14 +99,14 @@ function NotificationRoute() {
   };
 
   return (
-    <div className="min-h-screen bg-base-100">
+    <div className="bg-base-100">
       <div className="absolute top-4 left-4 z-10">
         <Link className="btn btn-ghost btn-sm" to="/">
           Back Home
         </Link>
       </div>
 
-      <div className="container mx-auto px-4 py-16">
+      <div className="container">
         <header className="mx-auto mb-16 max-w-4xl text-center">
           <div className="badge badge-primary badge-outline mb-4">
             Notification
@@ -284,7 +284,7 @@ function NotificationRoute() {
                                   .join(', ')}
                               </p>
                             ) : (
-                              <p className="label text-base-content/60">
+                              <p className="label text-base-content/80">
                                 Keep this brief and focused while you validate
                                 the template output.
                               </p>

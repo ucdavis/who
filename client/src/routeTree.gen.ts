@@ -13,7 +13,6 @@ import { Route as AboutRouteImport } from './routes/about'
 import { Route as authenticatedRouteRouteImport } from './routes/(authenticated)/route'
 import { Route as authenticatedIndexRouteImport } from './routes/(authenticated)/index'
 import { Route as authenticatedStylesRouteImport } from './routes/(authenticated)/styles'
-import { Route as authenticatedPeopleLookupRouteImport } from './routes/(authenticated)/people-lookup'
 import { Route as authenticatedNotificationRouteImport } from './routes/(authenticated)/notification'
 import { Route as authenticatedMeRouteImport } from './routes/(authenticated)/me'
 import { Route as authenticatedFormRouteImport } from './routes/(authenticated)/form'
@@ -38,12 +37,6 @@ const authenticatedStylesRoute = authenticatedStylesRouteImport.update({
   path: '/styles',
   getParentRoute: () => authenticatedRouteRoute,
 } as any)
-const authenticatedPeopleLookupRoute =
-  authenticatedPeopleLookupRouteImport.update({
-    id: '/people-lookup',
-    path: '/people-lookup',
-    getParentRoute: () => authenticatedRouteRoute,
-  } as any)
 const authenticatedNotificationRoute =
   authenticatedNotificationRouteImport.update({
     id: '/notification',
@@ -71,7 +64,6 @@ export interface FileRoutesByFullPath {
   '/form': typeof authenticatedFormRoute
   '/me': typeof authenticatedMeRoute
   '/notification': typeof authenticatedNotificationRoute
-  '/people-lookup': typeof authenticatedPeopleLookupRoute
   '/styles': typeof authenticatedStylesRoute
   '/': typeof authenticatedIndexRoute
   '/detail/$id': typeof authenticatedDetailIdRoute
@@ -81,7 +73,6 @@ export interface FileRoutesByTo {
   '/form': typeof authenticatedFormRoute
   '/me': typeof authenticatedMeRoute
   '/notification': typeof authenticatedNotificationRoute
-  '/people-lookup': typeof authenticatedPeopleLookupRoute
   '/styles': typeof authenticatedStylesRoute
   '/': typeof authenticatedIndexRoute
   '/detail/$id': typeof authenticatedDetailIdRoute
@@ -93,7 +84,6 @@ export interface FileRoutesById {
   '/(authenticated)/form': typeof authenticatedFormRoute
   '/(authenticated)/me': typeof authenticatedMeRoute
   '/(authenticated)/notification': typeof authenticatedNotificationRoute
-  '/(authenticated)/people-lookup': typeof authenticatedPeopleLookupRoute
   '/(authenticated)/styles': typeof authenticatedStylesRoute
   '/(authenticated)/': typeof authenticatedIndexRoute
   '/(authenticated)/detail_/$id': typeof authenticatedDetailIdRoute
@@ -105,7 +95,6 @@ export interface FileRouteTypes {
     | '/form'
     | '/me'
     | '/notification'
-    | '/people-lookup'
     | '/styles'
     | '/'
     | '/detail/$id'
@@ -115,7 +104,6 @@ export interface FileRouteTypes {
     | '/form'
     | '/me'
     | '/notification'
-    | '/people-lookup'
     | '/styles'
     | '/'
     | '/detail/$id'
@@ -126,7 +114,6 @@ export interface FileRouteTypes {
     | '/(authenticated)/form'
     | '/(authenticated)/me'
     | '/(authenticated)/notification'
-    | '/(authenticated)/people-lookup'
     | '/(authenticated)/styles'
     | '/(authenticated)/'
     | '/(authenticated)/detail_/$id'
@@ -167,13 +154,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof authenticatedStylesRouteImport
       parentRoute: typeof authenticatedRouteRoute
     }
-    '/(authenticated)/people-lookup': {
-      id: '/(authenticated)/people-lookup'
-      path: '/people-lookup'
-      fullPath: '/people-lookup'
-      preLoaderRoute: typeof authenticatedPeopleLookupRouteImport
-      parentRoute: typeof authenticatedRouteRoute
-    }
     '/(authenticated)/notification': {
       id: '/(authenticated)/notification'
       path: '/notification'
@@ -209,7 +189,6 @@ interface authenticatedRouteRouteChildren {
   authenticatedFormRoute: typeof authenticatedFormRoute
   authenticatedMeRoute: typeof authenticatedMeRoute
   authenticatedNotificationRoute: typeof authenticatedNotificationRoute
-  authenticatedPeopleLookupRoute: typeof authenticatedPeopleLookupRoute
   authenticatedStylesRoute: typeof authenticatedStylesRoute
   authenticatedIndexRoute: typeof authenticatedIndexRoute
   authenticatedDetailIdRoute: typeof authenticatedDetailIdRoute
@@ -219,7 +198,6 @@ const authenticatedRouteRouteChildren: authenticatedRouteRouteChildren = {
   authenticatedFormRoute: authenticatedFormRoute,
   authenticatedMeRoute: authenticatedMeRoute,
   authenticatedNotificationRoute: authenticatedNotificationRoute,
-  authenticatedPeopleLookupRoute: authenticatedPeopleLookupRoute,
   authenticatedStylesRoute: authenticatedStylesRoute,
   authenticatedIndexRoute: authenticatedIndexRoute,
   authenticatedDetailIdRoute: authenticatedDetailIdRoute,

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { detectSearchTypeFromText } from '@/routes/(authenticated)/people-lookup.tsx';
+import { detectSearchTypeFromText } from '@/routes/(authenticated)/index.tsx';
 
 const searchOptions: Parameters<typeof detectSearchTypeFromText>[1] = [
   {

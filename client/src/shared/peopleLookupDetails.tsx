@@ -148,11 +148,14 @@ const detailGroupOrder: DetailGroup[] = [
 export function PeopleDetailsPanel({
   allowSensitiveInfo,
   result,
+  showSearchField = true,
 }: {
   allowSensitiveInfo: boolean;
   result: PeopleSearchResult;
+  showSearchField?: boolean;
 }) {
   const visibleFields = detailFields
+    .filter((field) => showSearchField || field.key !== 'searchValue')
     .filter((field) => allowSensitiveInfo || !field.sensitive)
     .map((field) => ({
       ...field,

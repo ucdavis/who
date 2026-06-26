@@ -96,6 +96,7 @@ function PeopleLookupDetail() {
                       detailQuery.data?.allowSensitiveInfo ?? false
                     }
                     result={result}
+                    showSearchField={false}
                   />
                 </div>
               </div>

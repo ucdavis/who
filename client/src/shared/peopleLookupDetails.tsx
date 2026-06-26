@@ -180,10 +180,7 @@ export function PeopleDetailsPanel({
           </h3>
           <div className="flex flex-wrap gap-2">
             {activeAffiliations.map((field) => (
-              <span
-                className="badge badge-primary badge-outline"
-                key={field.key}
-              >
+              <span className="badge badge-primary badge-soft" key={field.key}>
                 {field.label}
               </span>
             ))}

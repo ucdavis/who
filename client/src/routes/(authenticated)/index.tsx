@@ -48,7 +48,8 @@ interface PeopleLookupSearchOption {
 const standardSearchOptions: PeopleLookupSearchOption[] = [
   {
     label: 'Email',
-    placeholder: 'Paste emails or Outlook text; emails are extracted automatically',
+    placeholder:
+      'Paste emails or Outlook text; emails are extracted automatically',
     value: 'email',
   },
   {
@@ -271,7 +272,6 @@ function detectNumericSearchType(
   return candidates[0].searchType;
 }
 
-
 function looksLikeLastNames(tokens: string[]) {
   return (
     tokens.every((token) => /^[a-z]['a-z-]{1,49}$/i.test(token)) &&
@@ -493,12 +493,12 @@ export function PeopleLookup() {
               >
                 <div className="space-y-4">
                   <div className="form-control w-full">
-                    <span className="label-text mb-2 font-medium">
+                    <span className="label-text mb-2 font-medium uppercase">
                       Search For
                     </span>
                     <div
                       aria-label="Search for"
-                      className="tabs tabs-box w-full overflow-x-auto"
+                      className="tabs tabs-box w-full overflow-x-auto mt-2"
                       role="tablist"
                     >
                       {searchOptions.map((option) => (
@@ -520,9 +520,11 @@ export function PeopleLookup() {
                     </div>
                   </div>
                   <label className="form-control w-full">
-                    <span className="label-text mb-2 font-medium">Values</span>
+                    <span className="label-text mb-2 font-medium uppercase">
+                      Values
+                    </span>
                     <textarea
-                      className="textarea textarea-bordered min-h-36 w-full"
+                      className="textarea textarea-bordered min-h-36 w-full mt-2"
                       onChange={(event) => setSearchText(event.target.value)}
                       onPaste={detectSearchTypeForPaste}
                       placeholder={selectedSearchOption.placeholder}
@@ -544,7 +546,7 @@ export function PeopleLookup() {
                       Lookup Users
                     </button>
                     <button
-                      className="btn btn-ghost"
+                      className="btn btn-outline"
                       onClick={() => {
                         setSearchText('');
                         setSelectedSearchType(defaultSearchType);
@@ -557,14 +559,14 @@ export function PeopleLookup() {
                     </button>
                   </div>
 
-                  <div className="flex flex-col gap-2 border-t border-base-300 pt-3 sm:flex-row sm:items-center lg:border-t-0 lg:border-l lg:pl-4 lg:pt-0">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                     <span className="text-sm font-medium whitespace-nowrap text-base-content/70">
                       Single user
                     </span>
-                    <div className="join w-full sm:w-auto">
+                    <div className="w-full sm:w-auto">
                       <input
                         aria-label="Single user lookup"
-                        className="input input-bordered join-item w-full sm:w-64"
+                        className="input w-full rounded-sm sm:w-64 mr-2"
                         onChange={(event) =>
                           setSingleLookup(event.target.value)
                         }
@@ -574,7 +576,7 @@ export function PeopleLookup() {
                         value={singleLookup}
                       />
                       <button
-                        className="btn btn-outline join-item"
+                        className="btn btn-primary"
                         disabled={!singleLookupValue}
                         onClick={openSingleLookup}
                         type="button"

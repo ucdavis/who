@@ -332,7 +332,7 @@ function OpenDetailPageLink({
       params={{ id: kerbId }}
       rel="noopener noreferrer"
       target="_blank"
-      to="/people-lookup/$id"
+      to="/detail/$id"
     >
       Open Detail Page
     </Link>
@@ -453,7 +453,7 @@ export function PeopleLookup() {
 
     void navigate({
       params: { id: singleLookupValue },
-      to: '/people-lookup/$id',
+      to: '/detail/$id',
     });
   };
 

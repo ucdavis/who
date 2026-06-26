@@ -155,7 +155,7 @@ function getDetailId(result: PeopleSearchResult) {
   return result.kerbId?.trim() ?? '';
 }
 
-function detectSearchTypeFromText(
+export function detectSearchTypeFromText(
   text: string,
   availableOptions: PeopleLookupSearchOption[]
 ) {
@@ -205,13 +205,6 @@ function detectSearchTypeFromText(
     return numericSearchType;
   }
 
-  if (
-    looksLikePpsaDepartmentCode(tokens) &&
-    availableSearchTypes.has('ppsaDeptCode')
-  ) {
-    return 'ppsaDeptCode';
-  }
-
   if (looksLikeLastNames(tokens) && availableSearchTypes.has('lastName')) {
     return 'lastName';
   }
@@ -244,13 +237,6 @@ function detectLabeledSearchType(
 
   if (/\bpps\b/i.test(text) && availableSearchTypes.has('ppsId')) {
     return 'ppsId';
-  }
-
-  if (
-    /\b(dept|department|ppsa)\b/i.test(text) &&
-    availableSearchTypes.has('ppsaDeptCode')
-  ) {
-    return 'ppsaDeptCode';
   }
 
   return null;
@@ -293,12 +279,6 @@ function detectNumericSearchType(
   return candidates[0].searchType;
 }
 
-function looksLikePpsaDepartmentCode(tokens: string[]) {
-  return (
-    tokens.every((token) => /^[\da-z-]{2,20}$/i.test(token)) &&
-    tokens.some((token) => /\d|-/.test(token))
-  );
-}
 
 function looksLikeLastNames(tokens: string[]) {
   return (

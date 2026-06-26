@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { detectSearchTypeFromText } from '@/routes/(authenticated)/index.tsx';
+import {
+  detectSearchTypeFromText,
+  getPeopleDetailHref,
+} from '@/routes/(authenticated)/index.tsx';
 
 const searchOptions: Parameters<typeof detectSearchTypeFromText>[1] = [
   {
@@ -51,6 +54,17 @@ describe('people lookup paste detection', () => {
     ).toBe('email');
     expect(detectSearchTypeFromText('IAM\n1234567890', searchOptions)).toBe(
       'iamId'
+    );
+  });
+});
+
+describe('people lookup detail links', () => {
+  it('keeps email addresses readable while encoding unsafe path characters', () => {
+    expect(getPeopleDetailHref('person@example.com')).toBe(
+      '/detail/person@example.com'
+    );
+    expect(getPeopleDetailHref('folder/person@example.com')).toBe(
+      '/detail/folder%2Fperson@example.com'
     );
   });
 });

@@ -148,6 +148,10 @@ function getDetailId(result: PeopleSearchResult) {
   return result.kerbId?.trim() ?? '';
 }
 
+export function getPeopleDetailHref(value: string) {
+  return `/detail/${encodeURIComponent(value).replaceAll('%40', '@')}`;
+}
+
 export function detectSearchTypeFromText(
   text: string,
   availableOptions: PeopleLookupSearchOption[]
@@ -424,8 +428,7 @@ export function PeopleLookup() {
     }
 
     void navigate({
-      params: { id: singleLookupValue },
-      to: '/detail/$id',
+      href: getPeopleDetailHref(singleLookupValue),
     });
   };
 

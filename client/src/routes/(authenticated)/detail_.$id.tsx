@@ -92,7 +92,7 @@ function PeopleLookupDetail() {
                         ) : null}
                       </div>
                       <PeopleAffiliations
-                        className="sm:max-w-md sm:justify-end"
+                        className="sm:mt-1 sm:max-w-md sm:justify-end"
                         result={result}
                       />
                     </div>

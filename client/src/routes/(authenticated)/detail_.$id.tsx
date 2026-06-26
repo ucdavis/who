@@ -1,4 +1,5 @@
 import {
+  PeopleAffiliations,
   PeopleDetailsPanel,
   type PeopleLookupResponse,
 } from '@/shared/peopleLookupDetails.tsx';
@@ -36,7 +37,7 @@ function PeopleLookupDetail() {
         <div className="mx-auto max-w-5xl pt-4 sm:pt-6">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
             <div className="lg:w-24">
-              <Link className="btn btn-default btn-sm" to="/">
+              <Link className="btn btn-default btn-sm mt-5" to="/">
                 <svg
                   className="mr-2 h-4 w-4"
                   fill="none"
@@ -81,17 +82,19 @@ function PeopleLookupDetail() {
               {result ? (
                 <section className="card bg-base-100 shadow-xl">
                   <div className="card-body">
-                    <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                       <div>
                         <h2 className="card-title text-2xl">
                           {result.fullName || result.searchValue || decodedId}
                         </h2>
                         {result.email ? (
-                          <p className="text-base-content/70">
-                            {result.email}
-                          </p>
+                          <p className="text-base-content/70">{result.email}</p>
                         ) : null}
                       </div>
+                      <PeopleAffiliations
+                        className="sm:max-w-md sm:justify-end"
+                        result={result}
+                      />
                     </div>
 
                     <div className="mt-4">
@@ -100,6 +103,7 @@ function PeopleLookupDetail() {
                           detailQuery.data?.allowSensitiveInfo ?? false
                         }
                         result={result}
+                        showAffiliations={false}
                         showSearchField={false}
                       />
                     </div>
@@ -113,4 +117,3 @@ function PeopleLookupDetail() {
     </div>
   );
 }
-

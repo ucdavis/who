@@ -148,10 +148,12 @@ const detailGroupOrder: DetailGroup[] = [
 export function PeopleDetailsPanel({
   allowSensitiveInfo,
   result,
+  showAffiliations = true,
   showSearchField = true,
 }: {
   allowSensitiveInfo: boolean;
   result: PeopleSearchResult;
+  showAffiliations?: boolean;
   showSearchField?: boolean;
 }) {
   const visibleFields = detailFields
@@ -165,7 +167,9 @@ export function PeopleDetailsPanel({
   const activeAffiliations = affiliationFields.filter(
     (field) => result[field.key]
   );
-  const hasDetails = visibleFields.length > 0 || activeAffiliations.length > 0;
+  const hasDetails =
+    visibleFields.length > 0 ||
+    (showAffiliations && activeAffiliations.length > 0);
 
   if (!hasDetails) {
     return (
@@ -177,18 +181,12 @@ export function PeopleDetailsPanel({
 
   return (
     <div className="space-y-5">
-      {activeAffiliations.length > 0 ? (
+      {showAffiliations && activeAffiliations.length > 0 ? (
         <section className="space-y-2">
           <h3 className="text-xs font-semibold uppercase tracking-wide text-base-content/80">
             Affiliations
           </h3>
-          <div className="flex flex-wrap gap-2">
-            {activeAffiliations.map((field) => (
-              <span className="badge badge-primary badge-soft" key={field.key}>
-                {field.label}
-              </span>
-            ))}
-          </div>
+          <PeopleAffiliations result={result} />
         </section>
       ) : null}
 
@@ -216,6 +214,32 @@ export function PeopleDetailsPanel({
           </section>
         );
       })}
+    </div>
+  );
+}
+
+export function PeopleAffiliations({
+  className = '',
+  result,
+}: {
+  className?: string;
+  result: PeopleSearchResult;
+}) {
+  const activeAffiliations = affiliationFields.filter(
+    (field) => result[field.key]
+  );
+
+  if (activeAffiliations.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className={`flex flex-wrap gap-2 ${className}`.trim()}>
+      {activeAffiliations.map((field) => (
+        <span className="badge badge-primary badge-soft" key={field.key}>
+          {field.label}
+        </span>
+      ))}
     </div>
   );
 }

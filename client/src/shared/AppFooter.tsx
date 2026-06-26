@@ -22,6 +22,15 @@ export function AppFooter() {
             >
               CRU
             </a>
+            <span className="mx-2 text-base-content/40">|</span>
+            <a
+              className="underline"
+              href="https://caeshelp.ucdavis.edu/?appname=WHO"
+              rel="noopener noreferrer"
+              target="_blank"
+            >
+              Help
+            </a>
           </p>
         </div>
       </div>

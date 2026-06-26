@@ -569,7 +569,7 @@ export function PeopleLookup() {
                           setSingleLookup(event.target.value)
                         }
                         onKeyDown={submitSingleLookup}
-                        placeholder="Kerberos ID or email"
+                        placeholder="Searchable info, Email, kerb, etc."
                         type="text"
                         value={singleLookup}
                       />

@@ -97,11 +97,11 @@ This template includes GA4 wiring:
 - GA bootstrap script is in `client/index.html`
 - Route-change page view tracking is in `client/src/shared/analytics/AnalyticsListener.tsx`
 
-A placeholder measurement ID is included by default:
+This app is configured with the GA4 measurement ID:
 
-- `G-XXXXXXXXXX`
+- `G-W46GLZE85V`
 
-Before using this template in a real app, replace `G-XXXXXXXXXX` in `client/index.html` with your real GA4 measurement ID in **both** places:
+The measurement ID appears in `client/index.html` in **both** places:
 
 1. `https://www.googletagmanager.com/gtag/js?id=...`
 2. `gtag('config', '...')`

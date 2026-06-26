@@ -1,6 +1,6 @@
 @import 'tailwindcss';
-@plugin "daisyui";
 @import '@ucdavis/gunrock-tailwind/imports.css';
+@plugin "daisyui";
 
 .container {
   padding: 0;

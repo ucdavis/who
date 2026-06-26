@@ -61,6 +61,7 @@ export const detailFields: Array<{
   { group: 'identity', key: 'searchValue', label: 'Search' },
   { group: 'identity', key: 'kerbId', label: 'Kerb Id' },
   { group: 'identity', key: 'iamId', label: 'IAM Id' },
+  { group: 'identity', key: 'fullName', label: 'Full Name' },
   {
     group: 'identity',
     key: 'officialFullName',

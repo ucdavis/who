@@ -360,6 +360,12 @@ export function PeopleLookup() {
   const results = lookupMutation.data?.results ?? [];
   const searchTextValue = searchText.trim();
   const singleLookupValue = singleLookup.trim();
+  const hasLookupStateToClear =
+    Boolean(searchTextValue) ||
+    activeSearchType !== defaultSearchType ||
+    Boolean(lookupMutation.data) ||
+    Boolean(lookupMutation.error) ||
+    Boolean(selectedResult);
   const csvColumns = allowSensitiveInfo
     ? [...standardCsvColumns, ...sensitiveCsvColumns]
     : standardCsvColumns;
@@ -550,6 +556,7 @@ export function PeopleLookup() {
                     </button>
                     <button
                       className="btn btn-outline"
+                      disabled={!hasLookupStateToClear}
                       onClick={() => {
                         setSearchText('');
                         setSelectedSearchType(defaultSearchType);

@@ -1,8 +1,12 @@
+import { fireEvent, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
+import { http, HttpResponse } from 'msw';
 import {
   detectSearchTypeFromText,
   getPeopleDetailHref,
 } from '@/routes/(authenticated)/index.tsx';
+import { server } from '@/test/mswUtils.ts';
+import { renderRoute } from '@/test/routerUtils.tsx';
 
 const searchOptions: Parameters<typeof detectSearchTypeFromText>[1] = [
   {
@@ -66,5 +70,47 @@ describe('people lookup detail links', () => {
     expect(getPeopleDetailHref('folder/person@example.com')).toBe(
       '/detail/folder%2Fperson@example.com'
     );
+  });
+});
+
+describe('people lookup clear button', () => {
+  it('is only enabled when there is lookup state to clear', async () => {
+    server.use(
+      http.get('/api/user/me', () =>
+        HttpResponse.json({
+          email: 'signed-in@example.com',
+          id: 'user-1',
+          name: 'Taylor',
+          roles: [],
+        })
+      ),
+      http.get('/api/peoplelookup/options', () =>
+        HttpResponse.json({ allowSensitiveInfo: false })
+      )
+    );
+
+    const { cleanup } = renderRoute({ initialPath: '/' });
+
+    try {
+      await screen.findByRole('heading', { name: 'Bulk User Lookup' });
+
+      const clearButton = screen.getByRole('button', { name: 'Clear' });
+      const valuesField = screen.getByLabelText('Values');
+
+      expect(clearButton).toBeDisabled();
+
+      fireEvent.input(valuesField, {
+        target: { value: 'person@example.com' },
+      });
+
+      expect(clearButton).toBeEnabled();
+
+      fireEvent.click(clearButton);
+
+      expect(valuesField).toHaveValue('');
+      expect(clearButton).toBeDisabled();
+    } finally {
+      cleanup();
+    }
   });
 });

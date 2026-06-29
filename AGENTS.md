@@ -146,7 +146,6 @@ Controllers    Static Files + SPA fallback (wwwroot)
 │   ├── Properties/
 │   ├── Program.cs       # Backend startup and middleware pipeline
 │   └── server.csproj    # SpaProxy and publish integration
-├── server.core/         # Shared server domain/data code
 └── tests/server.tests/  # .NET server tests
 ```
 
@@ -199,9 +198,6 @@ Controllers    Static Files + SPA fallback (wwwroot)
 - `npm start` - Start backend and frontend together from the repo root
 - `npm run start:server` - Start only the ASP.NET Core backend with `dotnet watch`
 - `npm run start:client` - Start only the Vite dev server
-- `npm run db:up` - Start the local SQL Server container
-- `npm run db:down` - Stop the local SQL Server container
-- `npm run db:logs` - Tail SQL Server logs
 - `cd client && npm run build` - Build the frontend for production
 - `cd client && npm run lint` - Run ESLint
 - `cd client && npm test` - Run client tests once

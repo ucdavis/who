@@ -9,20 +9,10 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as AboutRouteImport } from './routes/about'
 import { Route as authenticatedRouteRouteImport } from './routes/(authenticated)/route'
 import { Route as authenticatedIndexRouteImport } from './routes/(authenticated)/index'
-import { Route as authenticatedStylesRouteImport } from './routes/(authenticated)/styles'
-import { Route as authenticatedNotificationRouteImport } from './routes/(authenticated)/notification'
-import { Route as authenticatedMeRouteImport } from './routes/(authenticated)/me'
-import { Route as authenticatedFormRouteImport } from './routes/(authenticated)/form'
 import { Route as authenticatedDetailIdRouteImport } from './routes/(authenticated)/detail_.$id'
 
-const AboutRoute = AboutRouteImport.update({
-  id: '/about',
-  path: '/about',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const authenticatedRouteRoute = authenticatedRouteRouteImport.update({
   id: '/(authenticated)',
   getParentRoute: () => rootRouteImport,
@@ -32,27 +22,6 @@ const authenticatedIndexRoute = authenticatedIndexRouteImport.update({
   path: '/',
   getParentRoute: () => authenticatedRouteRoute,
 } as any)
-const authenticatedStylesRoute = authenticatedStylesRouteImport.update({
-  id: '/styles',
-  path: '/styles',
-  getParentRoute: () => authenticatedRouteRoute,
-} as any)
-const authenticatedNotificationRoute =
-  authenticatedNotificationRouteImport.update({
-    id: '/notification',
-    path: '/notification',
-    getParentRoute: () => authenticatedRouteRoute,
-  } as any)
-const authenticatedMeRoute = authenticatedMeRouteImport.update({
-  id: '/me',
-  path: '/me',
-  getParentRoute: () => authenticatedRouteRoute,
-} as any)
-const authenticatedFormRoute = authenticatedFormRouteImport.update({
-  id: '/form',
-  path: '/form',
-  getParentRoute: () => authenticatedRouteRoute,
-} as any)
 const authenticatedDetailIdRoute = authenticatedDetailIdRouteImport.update({
   id: '/detail_/$id',
   path: '/detail/$id',
@@ -60,79 +29,37 @@ const authenticatedDetailIdRoute = authenticatedDetailIdRouteImport.update({
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/about': typeof AboutRoute
-  '/form': typeof authenticatedFormRoute
-  '/me': typeof authenticatedMeRoute
-  '/notification': typeof authenticatedNotificationRoute
-  '/styles': typeof authenticatedStylesRoute
   '/': typeof authenticatedIndexRoute
   '/detail/$id': typeof authenticatedDetailIdRoute
 }
 export interface FileRoutesByTo {
-  '/about': typeof AboutRoute
-  '/form': typeof authenticatedFormRoute
-  '/me': typeof authenticatedMeRoute
-  '/notification': typeof authenticatedNotificationRoute
-  '/styles': typeof authenticatedStylesRoute
   '/': typeof authenticatedIndexRoute
   '/detail/$id': typeof authenticatedDetailIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/(authenticated)': typeof authenticatedRouteRouteWithChildren
-  '/about': typeof AboutRoute
-  '/(authenticated)/form': typeof authenticatedFormRoute
-  '/(authenticated)/me': typeof authenticatedMeRoute
-  '/(authenticated)/notification': typeof authenticatedNotificationRoute
-  '/(authenticated)/styles': typeof authenticatedStylesRoute
   '/(authenticated)/': typeof authenticatedIndexRoute
   '/(authenticated)/detail_/$id': typeof authenticatedDetailIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths:
-    | '/about'
-    | '/form'
-    | '/me'
-    | '/notification'
-    | '/styles'
-    | '/'
-    | '/detail/$id'
+  fullPaths: '/' | '/detail/$id'
   fileRoutesByTo: FileRoutesByTo
-  to:
-    | '/about'
-    | '/form'
-    | '/me'
-    | '/notification'
-    | '/styles'
-    | '/'
-    | '/detail/$id'
+  to: '/' | '/detail/$id'
   id:
     | '__root__'
     | '/(authenticated)'
-    | '/about'
-    | '/(authenticated)/form'
-    | '/(authenticated)/me'
-    | '/(authenticated)/notification'
-    | '/(authenticated)/styles'
     | '/(authenticated)/'
     | '/(authenticated)/detail_/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   authenticatedRouteRoute: typeof authenticatedRouteRouteWithChildren
-  AboutRoute: typeof AboutRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/about': {
-      id: '/about'
-      path: '/about'
-      fullPath: '/about'
-      preLoaderRoute: typeof AboutRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/(authenticated)': {
       id: '/(authenticated)'
       path: ''
@@ -147,34 +74,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof authenticatedIndexRouteImport
       parentRoute: typeof authenticatedRouteRoute
     }
-    '/(authenticated)/styles': {
-      id: '/(authenticated)/styles'
-      path: '/styles'
-      fullPath: '/styles'
-      preLoaderRoute: typeof authenticatedStylesRouteImport
-      parentRoute: typeof authenticatedRouteRoute
-    }
-    '/(authenticated)/notification': {
-      id: '/(authenticated)/notification'
-      path: '/notification'
-      fullPath: '/notification'
-      preLoaderRoute: typeof authenticatedNotificationRouteImport
-      parentRoute: typeof authenticatedRouteRoute
-    }
-    '/(authenticated)/me': {
-      id: '/(authenticated)/me'
-      path: '/me'
-      fullPath: '/me'
-      preLoaderRoute: typeof authenticatedMeRouteImport
-      parentRoute: typeof authenticatedRouteRoute
-    }
-    '/(authenticated)/form': {
-      id: '/(authenticated)/form'
-      path: '/form'
-      fullPath: '/form'
-      preLoaderRoute: typeof authenticatedFormRouteImport
-      parentRoute: typeof authenticatedRouteRoute
-    }
     '/(authenticated)/detail_/$id': {
       id: '/(authenticated)/detail_/$id'
       path: '/detail/$id'
@@ -186,19 +85,11 @@ declare module '@tanstack/react-router' {
 }
 
 interface authenticatedRouteRouteChildren {
-  authenticatedFormRoute: typeof authenticatedFormRoute
-  authenticatedMeRoute: typeof authenticatedMeRoute
-  authenticatedNotificationRoute: typeof authenticatedNotificationRoute
-  authenticatedStylesRoute: typeof authenticatedStylesRoute
   authenticatedIndexRoute: typeof authenticatedIndexRoute
   authenticatedDetailIdRoute: typeof authenticatedDetailIdRoute
 }
 
 const authenticatedRouteRouteChildren: authenticatedRouteRouteChildren = {
-  authenticatedFormRoute: authenticatedFormRoute,
-  authenticatedMeRoute: authenticatedMeRoute,
-  authenticatedNotificationRoute: authenticatedNotificationRoute,
-  authenticatedStylesRoute: authenticatedStylesRoute,
   authenticatedIndexRoute: authenticatedIndexRoute,
   authenticatedDetailIdRoute: authenticatedDetailIdRoute,
 }
@@ -208,7 +99,6 @@ const authenticatedRouteRouteWithChildren =
 
 const rootRouteChildren: RootRouteChildren = {
   authenticatedRouteRoute: authenticatedRouteRouteWithChildren,
-  AboutRoute: AboutRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

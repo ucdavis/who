@@ -1,9 +1,13 @@
+using Ietws;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.OpenApi.Any;
+using Microsoft.OpenApi.Models;
 using Server.Helpers;
 using Server.Models.PeopleLookup;
 using Server.Services;
+using Server.Swagger;
 
 WebApplication? app = null;
 
@@ -59,7 +63,24 @@ try
 
     // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
     builder.Services.AddEndpointsApiExplorer();
-    builder.Services.AddSwaggerGen();
+    builder.Services.AddSwaggerGen(c =>
+    {
+        c.SwaggerDoc("v1", new OpenApiInfo
+        {
+            Title = "People Lookup API",
+            Version = "v1"
+        });
+        c.MapType<PPSAssociationsSearchField>(() => new OpenApiSchema
+        {
+            Type = "string",
+            Enum = Enum.GetNames<PPSAssociationsSearchField>()
+                .Select(name => new OpenApiString(name))
+                .Cast<IOpenApiAny>()
+                .ToList(),
+            Example = new OpenApiString("bouOrgOId")
+        });
+        c.OperationFilter<IamwsSwaggerOperationFilter>();
+    });
 
     // Configure data protection for auth cookies and related framework secrets.
     // This local key ring assumes one effective app instance. Before scaling out
@@ -115,14 +136,23 @@ try
 
     app.UseResponseCaching();
 
-    // Configure the HTTP request pipeline.
-    if (app.Environment.IsDevelopment())
+    app.UseSwagger();
+    app.UseSwagger(c =>
     {
-        // swagger only in development
-        app.UseSwagger();
-        app.UseSwaggerUI();
-    }
-    else
+        c.RouteTemplate = "Swagger/{documentName}/swagger.json";
+    });
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "People Lookup API V1");
+    });
+    app.UseSwaggerUI(c =>
+    {
+        c.RoutePrefix = "Swagger";
+        c.SwaggerEndpoint("/Swagger/v1/swagger.json", "People Lookup API V1");
+    });
+
+    // Configure the HTTP request pipeline.
+    if (!app.Environment.IsDevelopment())
     {
         // only use HTTPS redirection in non-development environments
         app.UseHttpsRedirection();

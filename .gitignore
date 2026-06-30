@@ -48,4 +48,6 @@ msbuild.wrn
 
 # publish artifacts
 publish/
-server/artifacts/verify-build/
+server/artifacts/
+
+tests/server.tests/artifacts/

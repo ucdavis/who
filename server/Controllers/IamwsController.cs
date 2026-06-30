@@ -7,11 +7,6 @@ namespace Server.Controllers;
 [Route("api/[controller]")]
 public class IamwsController : ControllerBase
 {
-    [HttpGet]
-    public IEnumerable<string> Get()
-    {
-        return ["value1", "value2"];
-    }
 
     [HttpGet("PPSAssociation", Name = "GetPPSAssociation")]
     public async Task<IActionResult> GetPPSAssociation(

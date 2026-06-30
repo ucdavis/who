@@ -80,6 +80,11 @@ try
             Example = new OpenApiString("bouOrgOId")
         });
         c.OperationFilter<IamwsSwaggerOperationFilter>();
+        c.DocInclusionPredicate((_, apiDescription) =>
+        {
+            return apiDescription.ActionDescriptor.RouteValues.TryGetValue("controller", out var controllerName) &&
+                   string.Equals(controllerName, "Iamws", StringComparison.OrdinalIgnoreCase);
+        });
     });
 
     // Configure data protection for auth cookies and related framework secrets.

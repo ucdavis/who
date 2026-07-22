@@ -46,6 +46,10 @@ export default defineConfig({
         secure: false,
         target,
       },
+      '^/[sS]wagger': {
+        secure: false,
+        target,
+      },
       '^/api': {
         secure: false,
         target,

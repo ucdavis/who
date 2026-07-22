@@ -55,6 +55,10 @@ try
 
     // add scoped services here
     builder.Services.AddScoped<IUserService, UserService>();
+    builder.Services.AddHttpClient<IEntraUserAttributeService, EntraUserAttributeService>(client =>
+    {
+        client.BaseAddress = new Uri("https://graph.microsoft.com/v1.0/");
+    });
     builder.Services.AddScoped<IIdentityLookupService, IdentityLookupService>();
     builder.Services.AddScoped<IPeopleLookupPermissionService, PeopleLookupPermissionService>();
     // add auth policies here

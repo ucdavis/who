@@ -32,6 +32,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="server.tests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <!-- Show the frontend source tree in Visual Studio without requiring a separate .esproj. -->
     <Content Remove="$(SpaRoot)**" />
     <None Remove="$(SpaRoot)**" />

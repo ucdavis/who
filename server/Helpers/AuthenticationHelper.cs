@@ -8,12 +8,16 @@ namespace Server.Helpers;
 
 public static class AuthenticationHelper
 {
+    internal const string IamIdClaimType = "ucdPersonIAMID";
+
     /// <summary>
     /// Configures Microsoft Identity Web authentication with Azure AD/Entra ID
     /// </summary>
     public static IServiceCollection AddAuthenticationServices(this IServiceCollection services, IConfiguration configuration)
     {
-        services
+        ValidateGraphClientCredential(configuration);
+
+        var authBuilder = services
             .AddAuthentication(options =>
             {
                 options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
@@ -22,6 +26,8 @@ public static class AuthenticationHelper
             .AddMicrosoftIdentityWebApp(options =>
             {
                 configuration.Bind("Auth", options);
+
+                options.Scope.Add("User.Read");
 
                 options.TokenValidationParameters = new()
                 {
@@ -33,6 +39,10 @@ public static class AuthenticationHelper
                 options.Events.OnRedirectToIdentityProvider = OnRedirectToIdentityProvider;
                 options.Events.OnTokenValidated = OnTokenValidated;
             });
+
+        authBuilder
+            .EnableTokenAcquisitionToCallDownstreamApi(initialScopes: EntraUserAttributeService.RequiredScopes)
+            .AddInMemoryTokenCaches();
 
         services.PostConfigure<CookieAuthenticationOptions>(CookieAuthenticationDefaults.AuthenticationScheme, options =>
         {
@@ -52,6 +62,27 @@ public static class AuthenticationHelper
         });
 
         return services;
+    }
+
+    internal static void ValidateGraphClientCredential(IConfiguration configuration)
+    {
+        var authSection = configuration.GetSection("Auth");
+        var hasClientSecret = !string.IsNullOrWhiteSpace(authSection["ClientSecret"]);
+        var hasClientCredentials = authSection
+            .GetSection("ClientCredentials")
+            .GetChildren()
+            .Any();
+        var hasClientCertificates = authSection
+            .GetSection("ClientCertificates")
+            .GetChildren()
+            .Any();
+
+        if (!hasClientSecret && !hasClientCredentials && !hasClientCertificates)
+        {
+            throw new InvalidOperationException(
+                "Microsoft Graph login enrichment requires an Entra client credential. " +
+                "Set Auth__ClientSecret for local development, or configure Auth:ClientCredentials for production.");
+        }
     }
 
     /// <summary>
@@ -78,18 +109,49 @@ public static class AuthenticationHelper
     /// </summary>
     private static async Task OnTokenValidated(Microsoft.AspNetCore.Authentication.OpenIdConnect.TokenValidatedContext ctx)
     {
-        // Load up the roles on first login (can also change other user info/claims here if needed)
-        var userService = ctx.HttpContext.RequestServices.GetRequiredService<IUserService>();
-        var userId = ctx.Principal!.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var principal = ctx.Principal;
+        if (principal == null)
+        {
+            return;
+        }
 
-        if (string.IsNullOrEmpty(userId)) return;
+        await AddLoginClaimsAsync(
+            ctx.HttpContext.RequestServices,
+            principal,
+            ctx.HttpContext.RequestAborted);
+    }
 
+    internal static async Task AddLoginClaimsAsync(
+        IServiceProvider services,
+        ClaimsPrincipal principal,
+        CancellationToken cancellationToken)
+    {
+        var userId = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (string.IsNullOrEmpty(userId))
+        {
+            return;
+        }
+
+        var userService = services.GetRequiredService<IUserService>();
         var roles = await userService.GetRolesForUser(userId);
 
-        var identity = (ClaimsIdentity)ctx.Principal.Identity!;
+        var identity = (ClaimsIdentity)principal.Identity!;
         foreach (var role in roles)
         {
             identity.AddClaim(new Claim(ClaimTypes.Role, role));
+        }
+
+        var attributeService = services.GetRequiredService<IEntraUserAttributeService>();
+        var attributes = await attributeService.GetAttributesAsync(
+            userId,
+            principal,
+            cancellationToken);
+
+        if (!string.IsNullOrWhiteSpace(attributes?.IamId) &&
+            !identity.HasClaim(claim => claim.Type == IamIdClaimType))
+        {
+            identity.AddClaim(new Claim(IamIdClaimType, attributes.IamId));
         }
     }
 

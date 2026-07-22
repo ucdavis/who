@@ -286,7 +286,7 @@ public class PeopleLookupControllerTests
             _allowSensitiveInfo = allowSensitiveInfo;
         }
 
-        public bool CanSeeSensitiveInfo(ClaimsPrincipal user)
+        public bool CanSeeSensitiveInfo(ClaimsPrincipal? user)
         {
             return _allowSensitiveInfo;
         }

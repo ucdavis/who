@@ -13,6 +13,8 @@
     <ClientRestoreCommand Condition="Exists('$(SpaRoot)package-lock.json')">npm ci</ClientRestoreCommand>
     <ClientRestoreCommand Condition="'$(ClientRestoreCommand)' == ''">npm install</ClientRestoreCommand>
     <DefaultItemExcludes>$(DefaultItemExcludes);$(SpaRoot)node_modules\**</DefaultItemExcludes>
+    <AssemblyVersion>1.0.0.1</AssemblyVersion>
+    <FileVersion>1.0.0.1</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>

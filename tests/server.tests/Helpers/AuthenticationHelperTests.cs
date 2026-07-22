@@ -42,7 +42,8 @@ public class AuthenticationHelperTests
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["Auth:ClientCredentials:0:SourceType"] = "ClientSecret"
+                ["Auth:ClientCredentials:0:SourceType"] = "ClientSecret",
+                ["Auth:ClientCredentials:0:ClientSecret"] = "test-secret"
             })
             .Build();
 

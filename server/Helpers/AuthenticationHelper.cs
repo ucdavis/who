@@ -71,7 +71,7 @@ public static class AuthenticationHelper
         var hasClientCredentials = authSection
             .GetSection("ClientCredentials")
             .GetChildren()
-            .Any();
+            .Any(credential => !string.IsNullOrWhiteSpace(credential["ClientSecret"]));
         var hasClientCertificates = authSection
             .GetSection("ClientCertificates")
             .GetChildren()

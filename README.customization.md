@@ -40,7 +40,7 @@ The IAM lookup requires configuration from environment variables or `server/.env
 - `PeopleLookup__IamKey`
 - `PeopleLookup__SensitiveInfoUsers`
 
-`PeopleLookup__SensitiveInfoUsers` accepts comma, semicolon, or newline separated identifiers. Matching users can see sensitive identifier fields and use sensitive searches.
+`PeopleLookup__SensitiveInfoUsers` accepts comma, semicolon, or newline separated IAM IDs. A user's `ucdPersonIAMID` claim must match a configured IAM ID to see sensitive identifier fields and use sensitive searches.
 
 ## Telemetry
 

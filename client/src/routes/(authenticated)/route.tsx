@@ -25,10 +25,10 @@ function AuthenticatedRouteError({ error }: ErrorComponentProps<unknown>) {
     return (
       <main className="flex items-center justify-center px-4 py-12">
         <section className="max-w-lg text-center">
-          <h1 className="text-3xl font-bold text-gray-900">
+          <h1 className="text-3xl font-bold text-base-content">
             Access unavailable
           </h1>
-          <p className="mt-4 text-gray-600">
+          <p className="mt-4 text-base-content/70">
             You are signed in, but your account is not authorized to use this
             application.
           </p>
@@ -43,10 +43,10 @@ function AuthenticatedRouteError({ error }: ErrorComponentProps<unknown>) {
   return (
     <main className="flex items-center justify-center px-4 py-12">
       <section className="max-w-lg text-center">
-        <h1 className="text-3xl font-bold text-gray-900">
+        <h1 className="text-3xl font-bold text-base-content">
           We could not load this page
         </h1>
-        <p className="mt-4 text-gray-600">
+        <p className="mt-4 text-base-content/70">
           Refresh the page or try again later.
         </p>
       </section>

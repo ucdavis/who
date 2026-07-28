@@ -164,6 +164,11 @@ Controllers    Static Files + SPA fallback (wwwroot)
 - Leverage DaisyUI components when appropriate
 - Follow UC Davis Gunrock design system patterns
 
+### Dark Mode Compatibility
+
+- When adding or substantially changing UI components, charts, visualizations, or other visual elements, verify that they work in both the light and dark themes.
+- If an affected UI or visualization does not work correctly in dark mode, identify the issue and suggest minimal, theme-aware changes that preserve the existing light-theme appearance.
+
 ### Data Fetching
 
 - Use TanStack Query for server state

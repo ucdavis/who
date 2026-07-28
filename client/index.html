@@ -1,7 +1,16 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="gunrock">
 
 <head>
+  <script>
+    try {
+      if (localStorage.getItem('who-color-theme') === 'dark') {
+        document.documentElement.dataset.theme = 'who-dark';
+      }
+    } catch {
+      // Keep the default light theme when storage is unavailable.
+    }
+  </script>
   <meta charset="UTF-8" />
   <link rel="icon" href="/favicon.ico" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -23,7 +32,7 @@
   </script>
 </head>
 
-<body data-theme='gunrock' className='antialiased'>
+<body class="antialiased">
   <div id="root"></div>
   <script type="module" src="/src/main.tsx"></script>
 </body>

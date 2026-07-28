@@ -479,7 +479,7 @@ export function PeopleLookup() {
         <div className="mx-auto pt-20 space-y-8">
           <header className="space-y-3">
             <div className="flex items-center gap-3">
-              <img alt="Who" className="h-10 w-10" src="/who.svg" />
+              <img alt="Who" className="who-logo h-10 w-10" src="/who.svg" />
               <h1 className="text-4xl font-bold">Bulk User Lookup</h1>
             </div>
             <p className="max-w-3xl text-base-content/70">

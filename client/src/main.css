@@ -2,6 +2,57 @@
 @import '@ucdavis/gunrock-tailwind/imports.css';
 @plugin "daisyui";
 
+@plugin "daisyui/theme" {
+  name: 'who-dark';
+  color-scheme: dark;
+
+  --color-base-100: #101722;
+  --color-base-200: #182231;
+  --color-base-300: #253247;
+  --color-base-content: #edf2f7;
+
+  --color-primary: #7ab8ff;
+  --color-primary-content: #07111f;
+  --color-secondary: #ffcc4d;
+  --color-secondary-content: #17130a;
+  --color-accent: #65d4e8;
+  --color-accent-content: #061719;
+  --color-success: #83d475;
+  --color-success-content: #091707;
+  --color-warning: #ffc66b;
+  --color-warning-content: #1b1103;
+  --color-error: #ff8a9f;
+  --color-error-content: #20070c;
+  --color-info: #65d4e8;
+  --color-info-content: #061719;
+  --color-neutral: #dce5f0;
+  --color-neutral-content: #101722;
+
+  --radius-selector: 0.5rem;
+  --radius-field: 0.5rem;
+  --radius-box: 0.5rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 1px;
+  --depth: 1;
+  --noise: 1;
+}
+
+html,
+body {
+  background-color: var(--color-base-100);
+  color: var(--color-base-content);
+}
+
+[data-theme='who-dark'] .uc-davis-wordmark,
+[data-theme='who-dark'] .who-logo {
+  filter: brightness(0) invert(1);
+}
+
+[data-theme='who-dark'] .uc-davis-wordmark {
+  opacity: 0.85;
+}
+
 .container {
   padding: 0;
   width: 94%;

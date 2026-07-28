@@ -1,4 +1,25 @@
+import { useState } from 'react';
+
 export function AppFooter() {
+  const [isDark, setIsDark] = useState(
+    () => document.documentElement.dataset.theme === 'who-dark'
+  );
+
+  const toggleTheme = () => {
+    const nextIsDark = !isDark;
+    document.documentElement.dataset.theme = nextIsDark
+      ? 'who-dark'
+      : 'gunrock';
+
+    try {
+      localStorage.setItem('who-color-theme', nextIsDark ? 'dark' : 'light');
+    } catch {
+      // The selected theme still applies for this session.
+    }
+
+    setIsDark(nextIsDark);
+  };
+
   return (
     <footer className="relative mt-16 overflow-hidden py-10">
       <div className="pointer-events-none absolute -left-32 hidden md:block">
@@ -12,10 +33,23 @@ export function AppFooter() {
             rel="noopener noreferrer"
             target="_blank"
           >
-            <img alt="UC Davis wordmark" className="w-52" src="/ucdavis.svg" />
+            <img
+              alt="UC Davis wordmark"
+              className="uc-davis-wordmark w-52"
+              src="/ucdavis.svg"
+            />
           </a>
-          <p className="mt-2 text-center text-sm text-base-content/70">
-            created by
+          <div className="mt-2 flex items-center justify-center text-sm text-base-content/70">
+            <button
+              aria-label={`Switch to ${isDark ? 'light' : 'dark'} mode`}
+              className="btn btn-ghost btn-circle btn-xs me-1"
+              onClick={toggleTheme}
+              title={`Switch to ${isDark ? 'light' : 'dark'} mode`}
+              type="button"
+            >
+              {isDark ? <SunIcon /> : <MoonIcon />}
+            </button>
+            <span>created by</span>
             <a
               className="ms-1 underline"
               href="https://computing.caes.ucdavis.edu/"
@@ -31,7 +65,7 @@ export function AppFooter() {
             >
               Help
             </a>
-          </p>
+          </div>
         </div>
       </div>
 
@@ -39,6 +73,46 @@ export function AppFooter() {
         <BlueCircleSvg />
       </div>
     </footer>
+  );
+}
+
+function MoonIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="h-4 w-4"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8Z"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={1.8}
+      />
+    </svg>
+  );
+}
+
+function SunIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="h-4 w-4"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <circle cx="12" cy="12" r="4" strokeWidth={1.8} />
+      <path
+        d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42"
+        strokeLinecap="round"
+        strokeWidth={1.8}
+      />
+    </svg>
   );
 }
 

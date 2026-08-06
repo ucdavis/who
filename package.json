@@ -1,5 +1,5 @@
 {
-  "name": "web-app-template",
+  "name": "who",
   "private": true,
   "scripts": {
     "start": "npm-run-all --parallel start:server start:client:when-server-ready",

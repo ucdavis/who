@@ -82,6 +82,7 @@ jobs:
       deploy_infra: true
     secrets:
       OTEL_EXPORTER_OTLP_HEADERS: ${{ secrets.OTEL_EXPORTER_OTLP_HEADERS }}
+      PEOPLELOOKUP_IAMKEY: ${{ secrets.PEOPLELOOKUP_IAMKEY }}
 
   deploy_manual:
     name: Deploy ${{ inputs.environment }}
@@ -95,3 +96,4 @@ jobs:
       deploy_infra: ${{ inputs.deploy_infra }}
     secrets:
       OTEL_EXPORTER_OTLP_HEADERS: ${{ secrets.OTEL_EXPORTER_OTLP_HEADERS }}
+      PEOPLELOOKUP_IAMKEY: ${{ secrets.PEOPLELOOKUP_IAMKEY }}

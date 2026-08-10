@@ -43,6 +43,10 @@ param authInstance string
 @description('OpenID Connect callback path used by Microsoft Identity Web.')
 param authCallbackPath string
 
+@secure()
+@description('IAM people lookup API key.')
+param peopleLookupIamKey string
+
 @description('Optional OTLP exporter endpoint.')
 param otelExporterOtlpEndpoint string
 
@@ -99,6 +103,10 @@ var baseAppSettings = [
   {
     name: 'Auth__CallbackPath'
     value: authCallbackPath
+  }
+  {
+    name: 'PeopleLookup__IamKey'
+    value: peopleLookupIamKey
   }
 ]
 

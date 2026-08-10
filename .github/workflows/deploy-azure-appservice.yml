@@ -111,7 +111,6 @@ jobs:
             AUTH_CLIENT_ID
             AUTH_TENANT_ID
             AUTH_DOMAIN
-            PEOPLELOOKUP_IAMKEY
           )
 
           for name in "${required_values[@]}"; do

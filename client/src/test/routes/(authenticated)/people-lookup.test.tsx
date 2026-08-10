@@ -79,6 +79,44 @@ describe('people lookup detail links', () => {
   });
 });
 
+describe('single user lookup not-found state', () => {
+  it('uses the theme-aware muted error treatment', async () => {
+    server.use(
+      http.get('/api/user/me', () =>
+        HttpResponse.json({
+          email: 'signed-in@example.com',
+          id: 'user-1',
+          name: 'Taylor',
+          roles: [],
+        })
+      ),
+      http.get('/api/peoplelookup/detail/:id', () =>
+        HttpResponse.json({
+          allowSensitiveInfo: false,
+          results: [
+            {
+              found: false,
+              searchValue: 'missing-user',
+            },
+          ],
+        })
+      )
+    );
+
+    const { cleanup } = renderRoute({ initialPath: '/detail/missing-user' });
+
+    try {
+      const notFoundMessage = await screen.findByText('User not found.');
+      const alert = notFoundMessage.closest('.alert');
+
+      expect(alert).toHaveClass('alert-error', 'alert-soft');
+      expect(alert).not.toHaveClass('alert-warning');
+    } finally {
+      cleanup();
+    }
+  });
+});
+
 describe('people lookup clear button', () => {
   it('is only enabled when there is lookup state to clear', async () => {
     server.use(

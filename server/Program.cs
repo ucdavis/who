@@ -184,6 +184,9 @@ try
         NoStore = false,
     });
 
+    // The default SPA fallback excludes paths whose final segment contains a dot.
+    // Detail identifiers can be email addresses, so map that route explicitly.
+    app.MapFallbackToFile("/detail/{*id}", "/index.html", staticFileOptions);
     app.MapFallbackToFile("/index.html", staticFileOptions);
 
     app.Logger.LogInformation("Startup complete. Listening on {Urls}", string.Join(", ", app.Urls));

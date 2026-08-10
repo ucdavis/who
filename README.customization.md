@@ -62,11 +62,17 @@ GitHub Environments named `test` and `prod` need these variables from the OIDC b
 - `AZURE_SUBSCRIPTION_ID`
 - `RESOURCE_GROUP`
 
+They also need these application configuration values:
+
+- Auth variables: `AUTH_CLIENT_ID`, `AUTH_TENANT_ID`, `AUTH_DOMAIN`
+- People lookup variable: `PEOPLELOOKUP_SENSITIVEINFOUSERS`
+- People lookup secret: `PEOPLELOOKUP_IAMKEY`
+
 Optional environment variables:
 
 - App identity and location: `APP_NAME`, `AZURE_LOCATION`
 - Existing infrastructure deploys: `WEB_APP_NAME`
-- Auth: `AUTH_CLIENT_ID`, `AUTH_TENANT_ID`, `AUTH_DOMAIN`, `AUTH_INSTANCE`, `AUTH_CALLBACK_PATH`
+- Auth overrides: `AUTH_INSTANCE`, `AUTH_CALLBACK_PATH`
 - Observability: `OTEL_EXPORTER_OTLP_ENDPOINT`, `OTEL_EXPORTER_OTLP_PROTOCOL`, `OTEL_SERVICE_NAME`, `OTEL_RESOURCE_ATTRIBUTES`
 - Observability secret: `OTEL_EXPORTER_OTLP_HEADERS`
 - App Service SKU: `WEB_SKU_NAME`, `WEB_SKU_TIER`

@@ -563,7 +563,7 @@ export function PeopleLookup() {
                   <span className="underline underline-offset-2">
                     underlined letter
                   </span>
-                  <span>switches what to search</span>
+                  <span>switches what to search.</span>
                 </span>
                 <span aria-hidden="true" className="text-base-content/30">
                   •
@@ -574,7 +574,7 @@ export function PeopleLookup() {
                   <kbd className="kbd kbd-sm">⌘</kbd>
                   <span>+</span>
                   <kbd className="kbd kbd-sm">Enter</kbd>
-                  <span>searches</span>
+                  <span>searches.</span>
                 </span>
               </p>
             </div>

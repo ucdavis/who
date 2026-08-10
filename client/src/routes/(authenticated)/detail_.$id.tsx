@@ -71,7 +71,7 @@ function PeopleLookupDetail() {
               ) : null}
 
               {result && !result.found ? (
-                <div className="alert alert-warning">
+                <div className="alert alert-error alert-soft">
                   <span>
                     User not found
                     {result.errorMessage ? `: ${result.errorMessage}` : '.'}

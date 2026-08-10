@@ -84,13 +84,14 @@ Local deployment:
 ```bash
 export APP_NAME="<app-name>"
 export AZURE_SUBSCRIPTION_ID="<subscription-id>"
+export PEOPLELOOKUP_IAMKEY="<iamws-api-key>"
 infrastructure/azure/deploy_test.sh
 ```
 
 Use `infrastructure/azure/deploy_prod.sh` for production. For existing infrastructure, run:
 
 ```bash
-DEPLOY_INFRA=false WEB_APP_NAME="<app-service-name>" infrastructure/azure/deploy.sh test
+PEOPLELOOKUP_IAMKEY="<iamws-api-key>" DEPLOY_INFRA=false WEB_APP_NAME="<app-service-name>" infrastructure/azure/deploy.sh test
 ```
 
 ## Final Verification

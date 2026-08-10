@@ -48,6 +48,10 @@ param authInstance string = environment().authentication.loginEndpoint
 @description('OpenID Connect callback path used by Microsoft Identity Web.')
 param authCallbackPath string = '/signin-oidc'
 
+@secure()
+@description('IAM people lookup API key.')
+param peopleLookupIamKey string
+
 @description('Optional OTLP exporter endpoint. Leave empty when no external OTLP collector is configured.')
 param otelExporterOtlpEndpoint string = ''
 
@@ -126,6 +130,7 @@ module compute 'modules/compute.bicep' = if (deploymentGuardPassed) {
     authDomain: authDomain
     authInstance: authInstance
     authCallbackPath: authCallbackPath
+    peopleLookupIamKey: peopleLookupIamKey
     otelExporterOtlpEndpoint: otelExporterOtlpEndpoint
     otelExporterOtlpProtocol: otelExporterOtlpProtocol
     otelExporterOtlpHeaders: otelExporterOtlpHeaders

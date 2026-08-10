@@ -10,6 +10,9 @@ Usage:
   infrastructure/azure/deploy_test.sh
   infrastructure/azure/deploy_prod.sh
 
+Required for deployments:
+  PEOPLELOOKUP_IAMKEY    IAM people lookup API key.
+
 Common configuration:
   APP_NAME               Base Azure resource name. Default: webapp
   AZURE_SUBSCRIPTION_ID  Expected subscription. Default: current az account
@@ -102,6 +105,8 @@ case "$DEPLOY_ENV" in
   *) usage; die "DEPLOY_ENV must be either 'test' or 'prod'." ;;
 esac
 
+[[ -n "${PEOPLELOOKUP_IAMKEY:-}" ]] || die "PEOPLELOOKUP_IAMKEY is required for deployments."
+
 resource_group_lower="$(lower "$RESOURCE_GROUP")"
 expected_suffix="-$DEPLOY_ENV"
 if [[ "$resource_group_lower" != *"$expected_suffix" ]]; then
@@ -184,6 +189,7 @@ if is_true "$DEPLOY_INFRA"; then
   add_param "authDomain" "${AUTH_DOMAIN:-}"
   add_param "authInstance" "${AUTH_INSTANCE:-}"
   add_param "authCallbackPath" "${AUTH_CALLBACK_PATH:-}"
+  add_param "peopleLookupIamKey" "${PEOPLELOOKUP_IAMKEY:-}"
   add_param "otelExporterOtlpEndpoint" "${OTEL_EXPORTER_OTLP_ENDPOINT:-}"
   add_param "otelExporterOtlpProtocol" "${OTEL_EXPORTER_OTLP_PROTOCOL:-}"
   add_param "otelExporterOtlpHeaders" "${OTEL_EXPORTER_OTLP_HEADERS:-}"
@@ -231,6 +237,7 @@ add_setting "Auth__TenantId" "${AUTH_TENANT_ID:-}"
 add_setting "Auth__Domain" "${AUTH_DOMAIN:-}"
 add_setting "Auth__Instance" "${AUTH_INSTANCE:-}"
 add_setting "Auth__CallbackPath" "${AUTH_CALLBACK_PATH:-}"
+add_setting "PeopleLookup__IamKey" "${PEOPLELOOKUP_IAMKEY:-}"
 add_setting "OTEL_EXPORTER_OTLP_ENDPOINT" "${OTEL_EXPORTER_OTLP_ENDPOINT:-}"
 add_setting "OTEL_EXPORTER_OTLP_PROTOCOL" "${OTEL_EXPORTER_OTLP_PROTOCOL:-}"
 add_setting "OTEL_EXPORTER_OTLP_HEADERS" "${OTEL_EXPORTER_OTLP_HEADERS:-}"

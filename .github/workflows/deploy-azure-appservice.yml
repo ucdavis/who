@@ -111,6 +111,7 @@ jobs:
             AUTH_CLIENT_ID
             AUTH_TENANT_ID
             AUTH_DOMAIN
+            PEOPLELOOKUP_IAMKEY
           )
 
           for name in "${required_values[@]}"; do
@@ -211,6 +212,7 @@ jobs:
           add_param "authDomain" "$AUTH_DOMAIN"
           add_param "authInstance" "$AUTH_INSTANCE"
           add_param "authCallbackPath" "$AUTH_CALLBACK_PATH"
+          add_param "peopleLookupIamKey" "$PEOPLELOOKUP_IAMKEY"
           add_param "otelExporterOtlpEndpoint" "$OTEL_EXPORTER_OTLP_ENDPOINT"
           add_param "otelExporterOtlpProtocol" "$OTEL_EXPORTER_OTLP_PROTOCOL"
           add_param "otelExporterOtlpHeaders" "$OTEL_EXPORTER_OTLP_HEADERS"

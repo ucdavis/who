@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import packageJson from '../../package.json' with { type: 'json' };
 
 export function AppFooter() {
   const [isDark, setIsDark] = useState(
@@ -27,7 +28,7 @@ export function AppFooter() {
       </div>
 
       <div className="flex flex-1 justify-center">
-        <div className="flex flex-col">
+        <div className="relative flex flex-col">
           <a
             href="https://ucdavis.edu"
             rel="noopener noreferrer"
@@ -66,6 +67,12 @@ export function AppFooter() {
               Help
             </a>
           </div>
+          <p
+            aria-label={`Application version ${packageJson.version}`}
+            className="absolute top-full mt-1 w-full text-center text-xs tracking-wide text-base-content/40"
+          >
+            v{packageJson.version}
+          </p>
         </div>
       </div>
 

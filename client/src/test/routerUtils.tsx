@@ -49,6 +49,7 @@ export function renderRoute(
   } = options;
 
   const router = createRouter({
+    caseSensitive: false,
     context: { queryClient },
     history: createMemoryHistory({ initialEntries }),
     routeTree,

@@ -12,7 +12,8 @@ import { renderRoute } from '@/test/routerUtils.tsx';
 const searchOptions: Parameters<typeof detectSearchTypeFromText>[1] = [
   {
     label: 'Email',
-    placeholder: 'Paste emails or Outlook text; emails are extracted automatically',
+    placeholder:
+      'Paste emails or Outlook text; emails are extracted automatically',
     shortcut: 'e',
     value: 'email',
   },
@@ -60,7 +61,10 @@ describe('people lookup paste detection', () => {
 
   it('still auto-detects other pasted search types', () => {
     expect(
-      detectSearchTypeFromText('Taylor Example <taylor@example.edu>', searchOptions)
+      detectSearchTypeFromText(
+        'Taylor Example <taylor@example.edu>',
+        searchOptions
+      )
     ).toBe('email');
     expect(detectSearchTypeFromText('IAM\n1234567890', searchOptions)).toBe(
       'iamId'
@@ -76,6 +80,45 @@ describe('people lookup detail links', () => {
     expect(getPeopleDetailHref('folder/person@example.com')).toBe(
       '/detail/folder%2Fperson@example.com'
     );
+  });
+
+  it('loads an externally generated Detail link containing an email address', async () => {
+    let requestedId: string | undefined;
+
+    server.use(
+      http.get('/api/user/me', () =>
+        HttpResponse.json({
+          email: 'signed-in@example.com',
+          id: 'user-1',
+          name: 'Taylor',
+          roles: [],
+        })
+      ),
+      http.get('/api/peoplelookup/detail/:id', ({ params }) => {
+        requestedId = String(params.id);
+        return HttpResponse.json({
+          allowSensitiveInfo: false,
+          results: [
+            {
+              found: true,
+              fullName: 'Jason Sylvestre',
+              searchValue: requestedId,
+            },
+          ],
+        });
+      })
+    );
+
+    const { cleanup } = renderRoute({
+      initialPath: '/Detail/jsylvestre@ucdavis.edu',
+    });
+
+    try {
+      await screen.findByRole('heading', { name: 'Jason Sylvestre' });
+      expect(requestedId).toBe('jsylvestre@ucdavis.edu');
+    } finally {
+      cleanup();
+    }
   });
 });
 

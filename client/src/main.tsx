@@ -13,6 +13,7 @@ export type RouterContext = { queryClient: QueryClient };
 
 // Create a new router instance
 const router = createRouter({
+  caseSensitive: false,
   context: { queryClient },
   defaultPreload: 'intent',
   routeTree,

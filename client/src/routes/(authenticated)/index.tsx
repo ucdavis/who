@@ -17,6 +17,7 @@ import {
   type KeyboardEvent,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from 'react';
 
@@ -337,6 +338,7 @@ function OpenDetailPageLink({
 }
 export function PeopleLookup() {
   const navigate = useNavigate();
+  const valuesFieldRef = useRef<HTMLTextAreaElement>(null);
   const [searchText, setSearchText] = useState('');
   const [selectedSearchType, setSelectedSearchType] =
     useState<PeopleLookupSearchType>(defaultSearchType);
@@ -513,7 +515,15 @@ export function PeopleLookup() {
     }
   };
 
-  const submitSingleLookup = (event: KeyboardEvent<HTMLInputElement>) => {
+  const handleSingleLookupKeyDown = (
+    event: KeyboardEvent<HTMLInputElement>
+  ) => {
+    if (event.key === 'Tab' && !event.shiftKey) {
+      event.preventDefault();
+      valuesFieldRef.current?.focus();
+      return;
+    }
+
     if (event.key !== 'Enter') {
       return;
     }
@@ -596,6 +606,7 @@ export function PeopleLookup() {
                       onKeyDown={submitLookupFromKeyboard}
                       onPaste={detectSearchTypeForPaste}
                       placeholder={selectedSearchOption.placeholder}
+                      ref={valuesFieldRef}
                       value={searchText}
                     />
                   </label>
@@ -640,7 +651,7 @@ export function PeopleLookup() {
                         onChange={(event) =>
                           setSingleLookup(event.target.value)
                         }
-                        onKeyDown={submitSingleLookup}
+                        onKeyDown={handleSingleLookupKeyDown}
                         placeholder="Searchable info, Email, kerb, etc."
                         type="text"
                         value={singleLookup}

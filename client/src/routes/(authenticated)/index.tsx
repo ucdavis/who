@@ -546,11 +546,38 @@ export function PeopleLookup() {
               <img alt="Who" className="who-logo h-10 w-10" src="/who.svg" />
               <h1 className="text-4xl font-bold">Bulk User Lookup</h1>
             </div>
-            <p className="max-w-3xl text-base-content/70">
-              Choose what to search, paste the values, and submit the lookup.
-              When you paste text, we will try to detect the search type. Review
-              the selected tab before submitting.
-            </p>
+            <div className="max-w-3xl space-y-2 text-base-content/70">
+              <p className="leading-relaxed">
+                Choose a search field, paste your values, then submit the lookup.
+                <br />
+                We will try to detect the search type when you paste, so review
+                the selected field before submitting.
+              </p>
+              <p className="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm">
+                <span className="font-semibold text-base-content/80">
+                  Keyboard shortcuts
+                </span>
+                <span className="inline-flex items-center gap-1">
+                  <kbd className="kbd kbd-sm">Ctrl</kbd>
+                  <span>+</span>
+                  <span className="underline underline-offset-2">
+                    underlined letter
+                  </span>
+                  <span>switches what to search</span>
+                </span>
+                <span aria-hidden="true" className="text-base-content/30">
+                  •
+                </span>
+                <span className="inline-flex items-center gap-1">
+                  <kbd className="kbd kbd-sm">Ctrl</kbd>
+                  <span>/</span>
+                  <kbd className="kbd kbd-sm">⌘</kbd>
+                  <span>+</span>
+                  <kbd className="kbd kbd-sm">Enter</kbd>
+                  <span>searches</span>
+                </span>
+              </p>
+            </div>
           </header>
 
           <section className="card shadow-xl">

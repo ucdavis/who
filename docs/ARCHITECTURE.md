@@ -136,7 +136,8 @@ Responsibilities:
 Responsibilities:
 
 - Validates pull requests
-- Deploys pushes to `main` to the `test` GitHub Environment
+- Deploys pushes to `main` to `test`, then deploys the same commit to `prod` after
+  the `prod` GitHub Environment protection rules pass
 - Supports manual deployments to `test` or `prod`
 
 ### `.github/workflows/deploy-azure-appservice.yml`

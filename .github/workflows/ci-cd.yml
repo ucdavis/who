@@ -84,6 +84,21 @@ jobs:
       OTEL_EXPORTER_OTLP_HEADERS: ${{ secrets.OTEL_EXPORTER_OTLP_HEADERS }}
       PEOPLELOOKUP_IAMKEY: ${{ secrets.PEOPLELOOKUP_IAMKEY }}
 
+  deploy_prod:
+    name: Deploy prod
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+    needs: deploy_test
+    uses: ./.github/workflows/deploy-azure-appservice.yml
+    permissions:
+      contents: read
+      id-token: write
+    with:
+      environment: prod
+      deploy_infra: true
+    secrets:
+      OTEL_EXPORTER_OTLP_HEADERS: ${{ secrets.OTEL_EXPORTER_OTLP_HEADERS }}
+      PEOPLELOOKUP_IAMKEY: ${{ secrets.PEOPLELOOKUP_IAMKEY }}
+
   deploy_manual:
     name: Deploy ${{ inputs.environment }}
     if: ${{ github.event_name == 'workflow_dispatch' }}

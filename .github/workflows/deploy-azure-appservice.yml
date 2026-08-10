@@ -46,6 +46,9 @@ on:
       OTEL_EXPORTER_OTLP_HEADERS:
         description: Optional OTLP exporter headers, such as collector authorization.
         required: false
+      PEOPLELOOKUP_IAMKEY:
+        description: IAM people lookup API key.
+        required: false
 
 permissions:
   contents: read

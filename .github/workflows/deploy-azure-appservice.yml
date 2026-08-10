@@ -76,6 +76,8 @@ jobs:
       OTEL_EXPORTER_OTLP_PROTOCOL: ${{ vars.OTEL_EXPORTER_OTLP_PROTOCOL }}
       OTEL_RESOURCE_ATTRIBUTES: ${{ vars.OTEL_RESOURCE_ATTRIBUTES }}
       OTEL_SERVICE_NAME: ${{ vars.OTEL_SERVICE_NAME }}
+      PEOPLELOOKUP_IAMKEY: ${{ secrets.PEOPLELOOKUP_IAMKEY }}
+      PEOPLELOOKUP_SENSITIVEINFOUSERS: ${{ vars.PEOPLELOOKUP_SENSITIVEINFOUSERS }}
       RESOURCE_GROUP: ${{ inputs.resource_group || vars.RESOURCE_GROUP }}
       WEB_APP_NAME_INPUT: ${{ inputs.web_app_name || vars.WEB_APP_NAME }}
       WEB_SKU_NAME: ${{ vars.WEB_SKU_NAME }}
@@ -98,14 +100,25 @@ jobs:
           fi
 
           missing=()
-          for name in AZURE_CLIENT_ID AZURE_TENANT_ID AZURE_SUBSCRIPTION_ID RESOURCE_GROUP; do
+          required_values=(
+            AZURE_CLIENT_ID
+            AZURE_TENANT_ID
+            AZURE_SUBSCRIPTION_ID
+            RESOURCE_GROUP
+            AUTH_CLIENT_ID
+            AUTH_TENANT_ID
+            AUTH_DOMAIN
+            PEOPLELOOKUP_IAMKEY
+          )
+
+          for name in "${required_values[@]}"; do
             if [[ -z "${!name}" ]]; then
               missing+=("$name")
             fi
           done
 
           if (( ${#missing[@]} > 0 )); then
-            printf 'Missing required GitHub Environment variable(s): %s\n' "${missing[*]}"
+            printf 'Missing required GitHub Environment value(s): %s\n' "${missing[*]}"
             exit 1
           fi
 
@@ -256,6 +269,8 @@ jobs:
           add_setting "Auth__Domain" "$AUTH_DOMAIN"
           add_setting "Auth__Instance" "$AUTH_INSTANCE"
           add_setting "Auth__CallbackPath" "$AUTH_CALLBACK_PATH"
+          add_setting "PeopleLookup__IamKey" "$PEOPLELOOKUP_IAMKEY"
+          add_setting "PeopleLookup__SensitiveInfoUsers" "$PEOPLELOOKUP_SENSITIVEINFOUSERS"
           add_setting "OTEL_EXPORTER_OTLP_ENDPOINT" "$OTEL_EXPORTER_OTLP_ENDPOINT"
           add_setting "OTEL_EXPORTER_OTLP_PROTOCOL" "$OTEL_EXPORTER_OTLP_PROTOCOL"
           add_setting "OTEL_EXPORTER_OTLP_HEADERS" "$OTEL_EXPORTER_OTLP_HEADERS"

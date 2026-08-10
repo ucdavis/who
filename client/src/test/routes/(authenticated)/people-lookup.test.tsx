@@ -160,7 +160,7 @@ describe('people lookup clear button', () => {
 });
 
 describe('people lookup keyboard interactions', () => {
-  it('focuses the single-user field and opens details on Enter', async () => {
+  it('focuses the single-user field, tabs to Values, and opens details on Enter', async () => {
     server.use(
       http.get('/api/user/me', () =>
         HttpResponse.json({
@@ -189,6 +189,11 @@ describe('people lookup keyboard interactions', () => {
       });
       expect(singleUserField).toHaveFocus();
 
+      await user.tab();
+
+      expect(screen.getByLabelText('Values')).toHaveFocus();
+
+      await user.click(singleUserField);
       await user.type(singleUserField, 'kirkland{Enter}');
 
       await waitFor(() =>

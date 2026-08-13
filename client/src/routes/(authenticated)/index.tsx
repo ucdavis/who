@@ -612,11 +612,13 @@ export function PeopleLookup() {
                             role="tab"
                             type="button"
                           >
-                            {option.label.slice(0, shortcutIndex)}
-                            <span className="underline underline-offset-2">
-                              {option.label[shortcutIndex]}
+                            <span>
+                              {option.label.slice(0, shortcutIndex)}
+                              <span className="underline underline-offset-2">
+                                {option.label[shortcutIndex]}
+                              </span>
+                              {option.label.slice(shortcutIndex + 1)}
                             </span>
-                            {option.label.slice(shortcutIndex + 1)}
                           </button>
                         );
                       })}

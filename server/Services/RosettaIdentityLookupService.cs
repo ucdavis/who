@@ -153,7 +153,7 @@ public class RosettaIdentityLookupService : IIdentityLookupService
         var isFaculty = IsYes(affiliation?.Faculty) || IsYes(employmentStatus?.Is_faculty);
         var isHsEmployee = IsYes(employmentStatus?.Is_health_employee);
 
-        // Medium confidence: Rosetta exposes categorized emails, while the existing result distinguishes primary from "other" email.
+        // High confidence: Rosetta exposes categorized emails, while the existing result distinguishes primary from "other" email.
         // Unlikely we will ever see Personal Email.
         var otherEmails = GetOtherEmails(primaryEmail, person.Email?.Campus, person.Email?.Health, person.Email?.Personal);
 

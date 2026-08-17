@@ -56,7 +56,8 @@ try
 
     // add scoped services here
     builder.Services.AddScoped<IUserService, UserService>();
-    if (builder.Configuration.GetValue<bool>("UseRosettaLookup"))
+    var useRosettaLookup = builder.Configuration.GetValue<bool>("UseRosettaLookup");
+    if (useRosettaLookup)
     {
         builder.Services.AddRosettaClientWithFactory(options =>
             builder.Configuration.GetSection("RosettaClient").Bind(options));
@@ -199,6 +200,12 @@ try
     // app.UseHttpLogging(); // if you want extra logging. It's a little overkill though with the current logging setup
 
     app.MapControllers();
+
+    app.MapGet("/api/app-info", () => new
+        {
+            Provider = useRosettaLookup ? "Rosetta" : "IAM"
+        })
+        .AllowAnonymous();
 
     var healthEndpoint = app.MapHealthChecks("/health");
 

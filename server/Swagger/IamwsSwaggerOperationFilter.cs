@@ -44,13 +44,23 @@ public class IamwsSwaggerOperationFilter : IOperationFilter
 
     private static void ApplyRosettaDocumentation(OpenApiOperation operation, OperationFilterContext context)
     {
-        if (context.MethodInfo.Name != nameof(RosettaController.GetPeople))
+        switch (context.MethodInfo.Name)
         {
-            return;
+            case nameof(RosettaController.GetPeople):
+                operation.Summary = "Search Rosetta people.";
+                operation.Description = "Calls Rosetta's people endpoint with credentials supplied in request headers. BaseUrl and TokenUrl come from the server's RosettaClient configuration. Credentials are used only for this request and are not stored by this endpoint.";
+                break;
+            case nameof(RosettaController.GetContact):
+                operation.Summary = "Get Rosetta person and contact data by IAM ID.";
+                operation.Description = "Rosetta includes contact data in its people resource, so this compatibility endpoint calls Rosetta people by IAM ID. Credentials are supplied in request headers and are not stored by this endpoint.";
+                break;
+            case nameof(RosettaController.GetPpsAssociation):
+                operation.Summary = "Search Rosetta employee associations.";
+                operation.Description = "Rosetta employee associations are the closest equivalent to IAMWS PPS associations. Credentials are supplied in request headers and are not stored by this endpoint.";
+                break;
+            default:
+                return;
         }
-
-        operation.Summary = "Search Rosetta people.";
-        operation.Description = "Calls Rosetta's people endpoint with credentials supplied in request headers. BaseUrl and TokenUrl come from the server's RosettaClient configuration. Credentials are used only for this request and are not stored by this endpoint.";
 
         foreach (var parameter in operation.Parameters)
         {
@@ -80,6 +90,9 @@ public class IamwsSwaggerOperationFilter : IOperationFilter
             case "iamId":
                 parameter.Description = "IAM ID filter.";
                 break;
+            case "id":
+                parameter.Description = "IAM ID used to retrieve Rosetta person and contact data.";
+                break;
             case "email":
                 parameter.Description = "Email address filter.";
                 break;
@@ -100,6 +113,24 @@ public class IamwsSwaggerOperationFilter : IOperationFilter
                 break;
             case "ppsId":
                 parameter.Description = "PPS ID filter.";
+                break;
+            case "jobTypeId":
+                parameter.Description = "Rosetta job type ID filter.";
+                break;
+            case "organizationId":
+                parameter.Description = "Rosetta organization ID filter.";
+                break;
+            case "departmentId":
+                parameter.Description = "Rosetta department ID filter.";
+                break;
+            case "divisionId":
+                parameter.Description = "Rosetta division ID filter.";
+                break;
+            case "subdivisionId":
+                parameter.Description = "Rosetta subdivision ID filter.";
+                break;
+            case "subdivisionL4Id":
+                parameter.Description = "Rosetta level-four subdivision ID filter.";
                 break;
         }
     }

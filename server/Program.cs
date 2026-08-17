@@ -80,6 +80,11 @@ try
             Title = "People Lookup API",
             Version = "v1"
         });
+        c.SwaggerDoc("rosetta", new OpenApiInfo
+        {
+            Title = "Rosetta API",
+            Version = "v1"
+        });
         c.MapType<PPSAssociationsSearchField>(() => new OpenApiSchema
         {
             Type = "string",
@@ -90,10 +95,19 @@ try
             Example = new OpenApiString("bouOrgOId")
         });
         c.OperationFilter<IamwsSwaggerOperationFilter>();
-        c.DocInclusionPredicate((_, apiDescription) =>
+        c.DocInclusionPredicate((documentName, apiDescription) =>
         {
-            return apiDescription.ActionDescriptor.RouteValues.TryGetValue("controller", out var controllerName) &&
-                   string.Equals(controllerName, "Iamws", StringComparison.OrdinalIgnoreCase);
+            if (!apiDescription.ActionDescriptor.RouteValues.TryGetValue("controller", out var controllerName))
+            {
+                return false;
+            }
+
+            return documentName switch
+            {
+                "v1" => string.Equals(controllerName, "Iamws", StringComparison.OrdinalIgnoreCase),
+                "rosetta" => string.Equals(controllerName, "Rosetta", StringComparison.OrdinalIgnoreCase),
+                _ => false
+            };
         });
     });
 
@@ -159,11 +173,13 @@ try
     app.UseSwaggerUI(c =>
     {
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "People Lookup API V1");
+        c.SwaggerEndpoint("/swagger/rosetta/swagger.json", "Rosetta API V1");
     });
     app.UseSwaggerUI(c =>
     {
         c.RoutePrefix = "Swagger";
         c.SwaggerEndpoint("/Swagger/v1/swagger.json", "People Lookup API V1");
+        c.SwaggerEndpoint("/Swagger/rosetta/swagger.json", "Rosetta API V1");
     });
 
     // Configure the HTTP request pipeline.

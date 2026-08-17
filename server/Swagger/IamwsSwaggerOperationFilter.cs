@@ -10,6 +10,12 @@ public class IamwsSwaggerOperationFilter : IOperationFilter
 {
     public void Apply(OpenApiOperation operation, OperationFilterContext context)
     {
+        if (context.MethodInfo.DeclaringType == typeof(RosettaController))
+        {
+            ApplyRosettaDocumentation(operation, context);
+            return;
+        }
+
         if (context.MethodInfo.DeclaringType != typeof(IamwsController))
         {
             return;
@@ -33,6 +39,68 @@ public class IamwsSwaggerOperationFilter : IOperationFilter
         foreach (var parameter in operation.Parameters)
         {
             ApplyParameterDocumentation(parameter);
+        }
+    }
+
+    private static void ApplyRosettaDocumentation(OpenApiOperation operation, OperationFilterContext context)
+    {
+        if (context.MethodInfo.Name != nameof(RosettaController.GetPeople))
+        {
+            return;
+        }
+
+        operation.Summary = "Search Rosetta people.";
+        operation.Description = "Calls Rosetta's people endpoint with credentials supplied in request headers. BaseUrl and TokenUrl come from the server's RosettaClient configuration. Credentials are used only for this request and are not stored by this endpoint.";
+
+        foreach (var parameter in operation.Parameters)
+        {
+            ApplyRosettaParameterDocumentation(parameter);
+        }
+    }
+
+    private static void ApplyRosettaParameterDocumentation(OpenApiParameter parameter)
+    {
+        switch (parameter.Name)
+        {
+            case RosettaController.ClientIdHeaderName:
+                parameter.Description = "OAuth client ID used for this Rosetta request.";
+                parameter.Required = true;
+                parameter.Example = new OpenApiString("<client-id>");
+                break;
+            case RosettaController.ClientSecretHeaderName:
+                parameter.Description = "OAuth client secret used for this Rosetta request. Sent as a header so it does not appear in the URL.";
+                parameter.Required = true;
+                parameter.Schema.Format = "password";
+                parameter.Example = new OpenApiString("<client-secret>");
+                break;
+            case RosettaController.ScopesHeaderName:
+                parameter.Description = "Optional space-separated OAuth scopes. When omitted, the server's configured Rosetta scope is used.";
+                parameter.Example = new OpenApiString("read:public");
+                break;
+            case "iamId":
+                parameter.Description = "IAM ID filter.";
+                break;
+            case "email":
+                parameter.Description = "Email address filter.";
+                break;
+            case "loginId":
+                parameter.Description = "Kerberos/login ID filter.";
+                break;
+            case "lastName":
+                parameter.Description = "Last-name filter.";
+                break;
+            case "department":
+                parameter.Description = "UCPath department filter used by Rosetta's people endpoint.";
+                break;
+            case "employeeId":
+                parameter.Description = "Employee ID filter.";
+                break;
+            case "studentId":
+                parameter.Description = "Student ID filter.";
+                break;
+            case "ppsId":
+                parameter.Description = "PPS ID filter.";
+                break;
         }
     }
 

@@ -29,6 +29,7 @@
          critical security fixes for CVE-2026-26171 and CVE-2026-33116 (EncryptedXml DoS, CVSS 7.5).
          Revisit when .NET 10.1 ships or when the shared runtime includes 10.0.6+ so this override can be removed. -->
     <PackageReference Include="System.Security.Cryptography.Xml" Version="10.0.6" NoWarn="NU1510" />
+    <PackageReference Include="UCD.Rosetta.Client" Version="1.0.0" />
   </ItemGroup>
 
   <ItemGroup>

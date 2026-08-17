@@ -8,6 +8,7 @@ using Server.Helpers;
 using Server.Models.PeopleLookup;
 using Server.Services;
 using Server.Swagger;
+using UCD.Rosetta.Client.Core.Extensions;
 
 WebApplication? app = null;
 
@@ -55,7 +56,16 @@ try
 
     // add scoped services here
     builder.Services.AddScoped<IUserService, UserService>();
-    builder.Services.AddScoped<IIdentityLookupService, IdentityLookupService>();
+    if (builder.Configuration.GetValue<bool>("UseRosettaLookup"))
+    {
+        builder.Services.AddRosettaClientWithFactory(options =>
+            builder.Configuration.GetSection("RosettaClient").Bind(options));
+        builder.Services.AddScoped<IIdentityLookupService, RosettaIdentityLookupService>();
+    }
+    else
+    {
+        builder.Services.AddScoped<IIdentityLookupService, IdentityLookupService>();
+    }
     builder.Services.AddScoped<IPeopleLookupPermissionService, PeopleLookupPermissionService>();
     // add auth policies here
 

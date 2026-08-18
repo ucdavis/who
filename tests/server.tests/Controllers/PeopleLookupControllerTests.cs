@@ -177,10 +177,11 @@ public class PeopleLookupControllerTests
     [Fact]
     public async Task Detail_hides_sensitive_fields_when_unauthorized()
     {
+        var lastUpdated = new DateTimeOffset(2026, 8, 18, 14, 35, 0, TimeSpan.FromHours(-7));
         var identityLookupService = new FakeIdentityLookupService
         {
             LookupIdHandler = (field, search) => field == PeopleSearchField.iamId && search == "12345"
-                ? Found(search, displayName: "IAM Match", employeeId: "999")
+                ? Found(search, displayName: "IAM Match", employeeId: "999", lastUpdated: lastUpdated)
                 : NotFound(search)
         };
         var controller = CreateController(identityLookupService, allowSensitiveInfo: false);
@@ -190,6 +191,7 @@ public class PeopleLookupControllerTests
         var result = response.Results.Should().ContainSingle().Subject;
         result.Found.Should().BeTrue();
         result.EmployeeId.Should().BeNull();
+        result.LastUpdated.Should().BeNull();
     }
 
     private static async Task<PeopleLookupResponse> Search(
@@ -231,7 +233,8 @@ public class PeopleLookupControllerTests
         string search,
         string displayName,
         string? employeeId = null,
-        string? fullLivedName = null)
+        string? fullLivedName = null,
+        DateTimeOffset? lastUpdated = null)
     {
         return new PeopleSearchResult
         {
@@ -240,6 +243,7 @@ public class PeopleLookupControllerTests
             DisplayName = displayName,
             EmployeeId = employeeId,
             FullLivedName = fullLivedName,
+            LastUpdated = lastUpdated,
         };
     }
 

@@ -46,6 +46,8 @@ public class PeopleSearchResult
 
     public string? MothraId { get; set; }
 
+    public DateTimeOffset? LastUpdated { get; set; }
+
     public string? Title { get; set; }
 
     public string? ReportsToIamId { get; set; }
@@ -81,6 +83,7 @@ public class PeopleSearchResult
         ExceptionMessage = null;
         ReportsToIamId = null;
         MothraId = null;
+        LastUpdated = null;
         OtherEmails = null;
     }
 }

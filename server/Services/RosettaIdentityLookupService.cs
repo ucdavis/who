@@ -201,6 +201,7 @@ public class RosettaIdentityLookupService : IIdentityLookupService
             BannerPidm = NormalizeValue(person.Id?.Pidm),
             EmployeeId = employeeId,
             MothraId = NormalizeValue(person.Id?.Mothra_id),
+            LastUpdated = person.Modified_date,
             Title = titles,
             ReportsToIamId = reportsToIamId,
             WorkPhone = NormalizeValue(person.Phone?.Work),

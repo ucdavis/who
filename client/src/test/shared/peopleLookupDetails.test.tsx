@@ -59,6 +59,37 @@ describe('PeopleDetailsPanel', () => {
     expect(screen.getByText('Full Lived Name')).toBeInTheDocument();
     expect(screen.getByText('First M Last')).toBeInTheDocument();
   });
+
+  it('shows the Rosetta last-updated date and time with sensitive fields', () => {
+    const lastUpdated = '2026-08-18T21:35:00Z';
+    const expectedDateTime = new Intl.DateTimeFormat(undefined, {
+      dateStyle: 'medium',
+      timeStyle: 'short',
+    }).format(new Date(lastUpdated));
+
+    render(
+      <PeopleDetailsPanel
+        allowSensitiveInfo={true}
+        result={{ ...baseResult, lastUpdated }}
+      />
+    );
+
+    expect(screen.getByText('Sensitive Identifiers')).toBeInTheDocument();
+    expect(screen.getByText('Last Updated')).toBeInTheDocument();
+    expect(screen.getByText(expectedDateTime)).toBeInTheDocument();
+  });
+
+  it('hides the Rosetta last-updated date and time with sensitive fields', () => {
+    render(
+      <PeopleDetailsPanel
+        allowSensitiveInfo={false}
+        result={{ ...baseResult, lastUpdated: '2026-08-18T21:35:00Z' }}
+      />
+    );
+
+    expect(screen.queryByText('Last Updated')).not.toBeInTheDocument();
+  });
+
   it('can hide the search field for the dedicated detail page', () => {
     render(
       <PeopleDetailsPanel

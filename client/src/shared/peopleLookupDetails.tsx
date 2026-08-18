@@ -21,6 +21,7 @@ export interface PeopleSearchResult {
   isStudent: boolean;
   kerbId?: string | null;
   lastName?: string | null;
+  lastUpdated?: string | null;
   mothraId?: string | null;
   otherEmails?: string | null;
   ppsId?: string | null;
@@ -90,6 +91,12 @@ export const detailFields: Array<{
     sensitive: true,
   },
   { group: 'sensitive', key: 'mothraId', label: 'Mothra Id', sensitive: true },
+  {
+    group: 'sensitive',
+    key: 'lastUpdated',
+    label: 'Last Updated',
+    sensitive: true,
+  },
   { group: 'sensitive', key: 'ppsId', label: 'PPS Id', sensitive: true },
   {
     group: 'sensitive',
@@ -156,7 +163,10 @@ export function PeopleDetailsPanel({
     .filter((field) => allowSensitiveInfo || !field.sensitive)
     .map((field) => ({
       ...field,
-      value: formatValue(result[field.key]),
+      value:
+        field.key === 'lastUpdated'
+          ? formatDateTime(result[field.key])
+          : formatValue(result[field.key]),
     }))
     .filter((field) => field.value !== '');
   const activeAffiliations = affiliationFields.filter(
@@ -365,4 +375,21 @@ export function formatValue(value: unknown) {
   }
 
   return String(value);
+}
+
+function formatDateTime(value: unknown) {
+  if (typeof value !== 'string' || value === '') {
+    return '';
+  }
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  return new Intl.DateTimeFormat(undefined, {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  }).format(date);
 }

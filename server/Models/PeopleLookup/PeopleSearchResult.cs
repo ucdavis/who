@@ -8,7 +8,7 @@ public class PeopleSearchResult
 
     public string? DisplayName { get; set; }
 
-    public string? OfficialFullName { get; set; }
+    public string? FullLivedName { get; set; }
 
     public string? FirstName { get; set; }
 
@@ -81,7 +81,6 @@ public class PeopleSearchResult
         ExceptionMessage = null;
         ReportsToIamId = null;
         MothraId = null;
-        OfficialFullName = null;
         OtherEmails = null;
     }
 }

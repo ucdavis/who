@@ -17,7 +17,7 @@ public class PeopleLookupControllerTests
         var identityLookupService = new FakeIdentityLookupService
         {
             LookupHandler = search => search == "person@example.com"
-                ? Found(search, displayName: "Email Match")
+                ? Found(search, displayName: "Email Match", fullLivedName: "Email Lived Name")
                 : NotFound(search)
         };
         var controller = CreateController(identityLookupService, allowSensitiveInfo: false);
@@ -28,8 +28,9 @@ public class PeopleLookupControllerTests
             SearchType = "email",
         });
 
-        response.Results.Should().ContainSingle()
-            .Which.DisplayName.Should().Be("Email Match");
+        var result = response.Results.Should().ContainSingle().Subject;
+        result.DisplayName.Should().Be("Email Match");
+        result.FullLivedName.Should().Be("Email Lived Name");
         identityLookupService.Calls.Should().Equal("Lookup:person@example.com");
     }
 
@@ -226,7 +227,11 @@ public class PeopleLookupControllerTests
         return controller;
     }
 
-    private static PeopleSearchResult Found(string search, string displayName, string? employeeId = null)
+    private static PeopleSearchResult Found(
+        string search,
+        string displayName,
+        string? employeeId = null,
+        string? fullLivedName = null)
     {
         return new PeopleSearchResult
         {
@@ -234,6 +239,7 @@ public class PeopleLookupControllerTests
             Found = true,
             DisplayName = displayName,
             EmployeeId = employeeId,
+            FullLivedName = fullLivedName,
         };
     }
 

@@ -127,6 +127,7 @@ const standardCsvColumns: CsvColumn<PeopleSearchResult>[] = [
   { header: 'IAM Id', key: 'iamId' },
   { header: 'Email', key: 'email' },
   { header: 'Display Name', key: 'displayName' },
+  { header: 'Full Lived Name', key: 'fullLivedName' },
   { header: 'Pronouns', key: 'pronouns' },
   { header: 'First Name', key: 'firstName' },
   { header: 'Last Name', key: 'lastName' },
@@ -144,7 +145,6 @@ const standardCsvColumns: CsvColumn<PeopleSearchResult>[] = [
 ];
 
 const sensitiveCsvColumns: CsvColumn<PeopleSearchResult>[] = [
-  { header: 'Official Full Name', key: 'officialFullName' },
   { header: 'Mothra Id', key: 'mothraId' },
   { header: 'PPS Id', key: 'ppsId' },
   { header: 'Employee Id', key: 'employeeId' },

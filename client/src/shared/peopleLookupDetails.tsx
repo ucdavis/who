@@ -11,6 +11,7 @@ export interface PeopleSearchResult {
   expandedAffiliation?: string | null;
   firstName?: string | null;
   found: boolean;
+  fullLivedName?: string | null;
   iamId?: string | null;
   isEmployee: boolean;
   isExternal: boolean;
@@ -21,7 +22,6 @@ export interface PeopleSearchResult {
   kerbId?: string | null;
   lastName?: string | null;
   mothraId?: string | null;
-  officialFullName?: string | null;
   otherEmails?: string | null;
   ppsId?: string | null;
   pronouns?: string | null;
@@ -62,12 +62,7 @@ export const detailFields: Array<{
   { group: 'identity', key: 'kerbId', label: 'Kerb Id' },
   { group: 'identity', key: 'iamId', label: 'IAM Id' },
   { group: 'identity', key: 'displayName', label: 'Display Name' },
-  {
-    group: 'identity',
-    key: 'officialFullName',
-    label: 'Official Full Name',
-    sensitive: true,
-  },
+  { group: 'identity', key: 'fullLivedName', label: 'Full Lived Name' },
   { group: 'identity', key: 'pronouns', label: 'Pronouns' },
   { group: 'identity', key: 'firstName', label: 'First Name' },
   { group: 'identity', key: 'lastName', label: 'Last Name' },

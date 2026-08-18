@@ -365,7 +365,7 @@ public class IdentityLookupService : IIdentityLookupService
         searchResult.OtherEmails = emails.Count > 0 ? string.Join("; ", emails) : null;
         searchResult.WorkPhone = contact?.WorkPhone;
         searchResult.DisplayName = kerbResult.FullName;
-        searchResult.OfficialFullName = kerbResult.OFullName;
+        searchResult.FullLivedName = kerbResult.OFullName;
         searchResult.FirstName = kerbResult.FirstName;
         searchResult.LastName = kerbResult.LastName;
         searchResult.Pronouns = kerbResult.DPronouns;
@@ -402,7 +402,7 @@ public class IdentityLookupService : IIdentityLookupService
         searchResult.OtherEmails = emails.Count > 0 ? string.Join("; ", emails) : null;
         searchResult.WorkPhone = contact?.WorkPhone;
         searchResult.DisplayName = personResult.FullName;
-        searchResult.OfficialFullName = personResult.OFullName;
+        searchResult.FullLivedName = personResult.OFullName;
         searchResult.FirstName = personResult.FirstName;
         searchResult.Pronouns = personResult.DPronouns;
         searchResult.LastName = personResult.LastName;

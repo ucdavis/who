@@ -126,7 +126,7 @@ const standardCsvColumns: CsvColumn<PeopleSearchResult>[] = [
   { header: 'Kerb Id', key: 'kerbId' },
   { header: 'IAM Id', key: 'iamId' },
   { header: 'Email', key: 'email' },
-  { header: 'Full Name', key: 'fullName' },
+  { header: 'Display Name', key: 'displayName' },
   { header: 'Pronouns', key: 'pronouns' },
   { header: 'First Name', key: 'firstName' },
   { header: 'Last Name', key: 'lastName' },
@@ -445,8 +445,8 @@ export function PeopleLookup() {
         header: 'Email',
       },
       {
-        accessorKey: 'fullName',
-        header: 'Full Name',
+        accessorKey: 'displayName',
+        header: 'Display Name',
       },
       {
         accessorKey: 'isStudent',
@@ -803,7 +803,7 @@ function PersonDetailsModal({
           <div>
             <h3 className="text-lg font-bold">Person Details</h3>
             <p className="text-sm text-base-content/70">
-              {result.fullName || result.searchValue || 'Lookup result'}
+              {result.displayName || result.searchValue || 'Lookup result'}
             </p>
           </div>
           <button

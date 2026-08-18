@@ -3,6 +3,7 @@ import { useState } from 'react';
 export interface PeopleSearchResult {
   bannerPidm?: string | null;
   departments?: string | null;
+  displayName?: string | null;
   email?: string | null;
   employeeId?: string | null;
   errorMessage?: string | null;
@@ -10,7 +11,6 @@ export interface PeopleSearchResult {
   expandedAffiliation?: string | null;
   firstName?: string | null;
   found: boolean;
-  fullName?: string | null;
   iamId?: string | null;
   isEmployee: boolean;
   isExternal: boolean;
@@ -61,7 +61,7 @@ export const detailFields: Array<{
   { group: 'identity', key: 'searchValue', label: 'Search' },
   { group: 'identity', key: 'kerbId', label: 'Kerb Id' },
   { group: 'identity', key: 'iamId', label: 'IAM Id' },
-  { group: 'identity', key: 'fullName', label: 'Full Name' },
+  { group: 'identity', key: 'displayName', label: 'Display Name' },
   {
     group: 'identity',
     key: 'officialFullName',

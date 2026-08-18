@@ -85,7 +85,7 @@ function PeopleLookupDetail() {
                     <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                       <div>
                         <h2 className="card-title text-2xl">
-                          {result.fullName || result.searchValue || decodedId}
+                          {result.displayName || result.searchValue || decodedId}
                         </h2>
                         {result.email ? (
                           <p className="text-base-content/70">{result.email}</p>

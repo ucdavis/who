@@ -6,8 +6,8 @@ import {
 } from '@/shared/peopleLookupDetails.tsx';
 
 const baseResult: PeopleSearchResult = {
+  displayName: 'First Middle Last',
   found: true,
-  fullName: 'First Middle Last',
   isEmployee: false,
   isExternal: false,
   isFaculty: false,
@@ -21,27 +21,27 @@ const baseResult: PeopleSearchResult = {
 afterEach(() => cleanup());
 
 describe('PeopleDetailsPanel', () => {
-  it('shows full name when sensitive fields are hidden', () => {
+  it('shows display name when sensitive fields are hidden', () => {
     render(
       <PeopleDetailsPanel allowSensitiveInfo={false} result={baseResult} />
     );
 
     expect(screen.getByText('Search')).toBeInTheDocument();
     expect(screen.getByText('person@example.com')).toBeInTheDocument();
-    expect(screen.getByText('Full Name')).toBeInTheDocument();
+    expect(screen.getByText('Display Name')).toBeInTheDocument();
     expect(screen.getByText('First Middle Last')).toBeInTheDocument();
     expect(screen.queryByText('Official Full Name')).not.toBeInTheDocument();
     expect(screen.queryByText('First M Last')).not.toBeInTheDocument();
   });
 
-  it('keeps full name separate from sensitive official full name', () => {
+  it('keeps display name separate from sensitive official full name', () => {
     render(
       <PeopleDetailsPanel allowSensitiveInfo={true} result={baseResult} />
     );
 
     expect(screen.getByText('Search')).toBeInTheDocument();
     expect(screen.getByText('person@example.com')).toBeInTheDocument();
-    expect(screen.getByText('Full Name')).toBeInTheDocument();
+    expect(screen.getByText('Display Name')).toBeInTheDocument();
     expect(screen.getByText('First Middle Last')).toBeInTheDocument();
     expect(screen.getByText('Official Full Name')).toBeInTheDocument();
     expect(screen.getByText('First M Last')).toBeInTheDocument();
@@ -57,6 +57,6 @@ describe('PeopleDetailsPanel', () => {
 
     expect(screen.queryByText('Search')).not.toBeInTheDocument();
     expect(screen.queryByText('person@example.com')).not.toBeInTheDocument();
-    expect(screen.getByText('Full Name')).toBeInTheDocument();
+    expect(screen.getByText('Display Name')).toBeInTheDocument();
   });
 });

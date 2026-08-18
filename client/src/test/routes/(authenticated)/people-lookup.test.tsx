@@ -100,8 +100,8 @@ describe('people lookup detail links', () => {
           allowSensitiveInfo: false,
           results: [
             {
+              displayName: 'Jason Sylvestre',
               found: true,
-              fullName: 'Jason Sylvestre',
               searchValue: requestedId,
             },
           ],

@@ -176,12 +176,12 @@ public class RosettaIdentityLookupService : IIdentityLookupService
             person.Id?.Employee_id,
             FirstValue(employeeAssociations.Select(association => association.Employee_id).ToArray()));
 
-        // High confidence: display name maps to FullName; lived first, middle, and last name map to OfficialFullName.
+        // High confidence: display name maps directly; lived first, middle, and last name map to OfficialFullName.
         return new PeopleSearchResult
         {
             SearchValue = search,
             Found = !string.IsNullOrWhiteSpace(iamId),
-            FullName = NormalizeValue(person.Displayname),
+            DisplayName = NormalizeValue(person.Displayname),
             OfficialFullName = JoinName(person.Name?.Lived_first_name, person.Name?.Lived_middle_name, person.Name?.Lived_last_name),
             FirstName = NormalizeValue(person.Name?.Lived_first_name),
             LastName = NormalizeValue(person.Name?.Lived_last_name),

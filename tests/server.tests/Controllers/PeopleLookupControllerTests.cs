@@ -17,7 +17,7 @@ public class PeopleLookupControllerTests
         var identityLookupService = new FakeIdentityLookupService
         {
             LookupHandler = search => search == "person@example.com"
-                ? Found(search, fullName: "Email Match")
+                ? Found(search, displayName: "Email Match")
                 : NotFound(search)
         };
         var controller = CreateController(identityLookupService, allowSensitiveInfo: false);
@@ -29,7 +29,7 @@ public class PeopleLookupControllerTests
         });
 
         response.Results.Should().ContainSingle()
-            .Which.FullName.Should().Be("Email Match");
+            .Which.DisplayName.Should().Be("Email Match");
         identityLookupService.Calls.Should().Equal("Lookup:person@example.com");
     }
 
@@ -39,7 +39,7 @@ public class PeopleLookupControllerTests
         var identityLookupService = new FakeIdentityLookupService
         {
             LookupIdHandler = (field, search) => field == PeopleSearchField.employeeId && search == "12345"
-                ? Found(search, fullName: "Employee Match")
+                ? Found(search, displayName: "Employee Match")
                 : NotFound(search)
         };
         var controller = CreateController(identityLookupService, allowSensitiveInfo: true);
@@ -51,7 +51,7 @@ public class PeopleLookupControllerTests
         });
 
         response.Results.Should().ContainSingle()
-            .Which.FullName.Should().Be("Employee Match");
+            .Which.DisplayName.Should().Be("Employee Match");
         identityLookupService.Calls.Should().Equal("LookupId:employeeId:12345");
     }
 
@@ -78,7 +78,7 @@ public class PeopleLookupControllerTests
         var identityLookupService = new FakeIdentityLookupService
         {
             LookupHandler = search => search == "person@example.com"
-                ? Found(search, fullName: "Email Match")
+                ? Found(search, displayName: "Email Match")
                 : NotFound(search)
         };
         var controller = CreateController(identityLookupService, allowSensitiveInfo: false);
@@ -86,7 +86,7 @@ public class PeopleLookupControllerTests
         var response = await Detail(controller, "Email: person@example.com.");
 
         response.Results.Should().ContainSingle()
-            .Which.FullName.Should().Be("Email Match");
+            .Which.DisplayName.Should().Be("Email Match");
         identityLookupService.Calls.Should().Equal("Lookup:person@example.com");
     }
 
@@ -96,7 +96,7 @@ public class PeopleLookupControllerTests
         var identityLookupService = new FakeIdentityLookupService
         {
             LookupHandler = search => search == "person"
-                ? Found(search, fullName: "Kerb Match")
+                ? Found(search, displayName: "Kerb Match")
                 : NotFound(search)
         };
         var controller = CreateController(identityLookupService, allowSensitiveInfo: false);
@@ -104,7 +104,7 @@ public class PeopleLookupControllerTests
         var response = await Detail(controller, "person@example.com");
 
         response.Results.Should().ContainSingle()
-            .Which.FullName.Should().Be("Kerb Match");
+            .Which.DisplayName.Should().Be("Kerb Match");
         identityLookupService.Calls.Should().Equal(
             "Lookup:person@example.com",
             "Lookup:person");
@@ -116,7 +116,7 @@ public class PeopleLookupControllerTests
         var identityLookupService = new FakeIdentityLookupService
         {
             LookupIdHandler = (field, search) => field == PeopleSearchField.iamId && search == "12345"
-                ? Found(search, fullName: "IAM Match")
+                ? Found(search, displayName: "IAM Match")
                 : NotFound(search)
         };
         var controller = CreateController(identityLookupService, allowSensitiveInfo: true);
@@ -124,7 +124,7 @@ public class PeopleLookupControllerTests
         var response = await Detail(controller, "12345");
 
         response.Results.Should().ContainSingle()
-            .Which.FullName.Should().Be("IAM Match");
+            .Which.DisplayName.Should().Be("IAM Match");
         identityLookupService.Calls.Should().Equal(
             "Lookup:12345",
             "LookupId:iamId:12345");
@@ -136,7 +136,7 @@ public class PeopleLookupControllerTests
         var identityLookupService = new FakeIdentityLookupService
         {
             LookupIdHandler = (field, search) => field == PeopleSearchField.ppsId && search == "12345"
-                ? Found(search, fullName: "PPS Match")
+                ? Found(search, displayName: "PPS Match")
                 : NotFound(search)
         };
         var controller = CreateController(identityLookupService, allowSensitiveInfo: true);
@@ -144,7 +144,7 @@ public class PeopleLookupControllerTests
         var response = await Detail(controller, "12345");
 
         response.Results.Should().ContainSingle()
-            .Which.FullName.Should().Be("PPS Match");
+            .Which.DisplayName.Should().Be("PPS Match");
         identityLookupService.Calls.Should().Equal(
             "Lookup:12345",
             "LookupId:iamId:12345",
@@ -159,7 +159,7 @@ public class PeopleLookupControllerTests
         var identityLookupService = new FakeIdentityLookupService
         {
             LookupIdHandler = (field, search) => field == PeopleSearchField.employeeId && search == "12345"
-                ? Found(search, fullName: "Employee Match")
+                ? Found(search, displayName: "Employee Match")
                 : NotFound(search)
         };
         var controller = CreateController(identityLookupService, allowSensitiveInfo: false);
@@ -179,7 +179,7 @@ public class PeopleLookupControllerTests
         var identityLookupService = new FakeIdentityLookupService
         {
             LookupIdHandler = (field, search) => field == PeopleSearchField.iamId && search == "12345"
-                ? Found(search, fullName: "IAM Match", employeeId: "999")
+                ? Found(search, displayName: "IAM Match", employeeId: "999")
                 : NotFound(search)
         };
         var controller = CreateController(identityLookupService, allowSensitiveInfo: false);
@@ -226,13 +226,13 @@ public class PeopleLookupControllerTests
         return controller;
     }
 
-    private static PeopleSearchResult Found(string search, string fullName, string? employeeId = null)
+    private static PeopleSearchResult Found(string search, string displayName, string? employeeId = null)
     {
         return new PeopleSearchResult
         {
             SearchValue = search,
             Found = true,
-            FullName = fullName,
+            DisplayName = displayName,
             EmployeeId = employeeId,
         };
     }

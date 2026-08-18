@@ -57,6 +57,28 @@ public class PeopleLookupControllerTests
     }
 
     [Fact]
+    public async Task Search_uses_mothra_id_search_type_when_authorized()
+    {
+        var identityLookupService = new FakeIdentityLookupService
+        {
+            LookupIdHandler = (field, search) => field == PeopleSearchField.mothraId && search == "12345"
+                ? Found(search, displayName: "MOTHRA Match")
+                : NotFound(search)
+        };
+        var controller = CreateController(identityLookupService, allowSensitiveInfo: true);
+
+        var response = await Search(controller, new BulkPeopleLookupRequest
+        {
+            SearchText = "12345",
+            SearchType = "mothraId",
+        });
+
+        response.Results.Should().ContainSingle()
+            .Which.DisplayName.Should().Be("MOTHRA Match");
+        identityLookupService.Calls.Should().Equal("LookupId:mothraId:12345");
+    }
+
+    [Fact]
     public async Task Search_ignores_sensitive_search_type_when_unauthorized()
     {
         var identityLookupService = new FakeIdentityLookupService();
@@ -65,7 +87,7 @@ public class PeopleLookupControllerTests
         var response = await Search(controller, new BulkPeopleLookupRequest
         {
             SearchText = "12345",
-            SearchType = "studentId",
+            SearchType = "mothraId",
         });
 
         response.Message.Should().Be("Sensitive identifier searches were ignored for your account.");

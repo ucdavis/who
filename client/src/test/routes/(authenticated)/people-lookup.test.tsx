@@ -289,6 +289,89 @@ describe('people lookup keyboard interactions', () => {
     }
   });
 
+  it('shows the sensitive MOTHRA ID switch only with Rosetta and underlines its t shortcut', async () => {
+    let submittedBody: unknown;
+
+    server.use(
+      http.get('/api/user/me', () =>
+        HttpResponse.json({
+          email: 'signed-in@example.com',
+          id: 'user-1',
+          name: 'Taylor',
+          roles: [],
+        })
+      ),
+      http.get('/api/app-info', () =>
+        HttpResponse.json({ provider: 'Rosetta' })
+      ),
+      http.get('/api/peoplelookup/options', () =>
+        HttpResponse.json({ allowSensitiveInfo: true })
+      ),
+      http.post('/api/peoplelookup/search', async ({ request }) => {
+        submittedBody = await request.json();
+        return HttpResponse.json({ allowSensitiveInfo: true, results: [] });
+      })
+    );
+
+    const { cleanup } = renderRoute({ initialPath: '/' });
+
+    try {
+      const mothraTab = await screen.findByRole('tab', { name: 'MOTHRA ID' });
+      const singleUserField = screen.getByLabelText('Single user lookup');
+
+      expect(mothraTab).toHaveAttribute('aria-keyshortcuts', 'Control+T');
+      expect(mothraTab.querySelector('.underline')).toHaveTextContent('T');
+
+      fireEvent.keyDown(singleUserField, { ctrlKey: true, key: 't' });
+
+      expect(mothraTab).toHaveAttribute('aria-selected', 'true');
+      expect(singleUserField).toHaveFocus();
+
+      fireEvent.input(screen.getByLabelText('Values'), {
+        target: { value: '12345' },
+      });
+      fireEvent.click(screen.getByRole('button', { name: 'Lookup Users' }));
+
+      await waitFor(() =>
+        expect(submittedBody).toEqual({
+          searchText: '12345',
+          searchType: 'mothraId',
+        })
+      );
+    } finally {
+      cleanup();
+    }
+  });
+
+  it('hides the MOTHRA ID switch when IAM is used', async () => {
+    server.use(
+      http.get('/api/user/me', () =>
+        HttpResponse.json({
+          email: 'signed-in@example.com',
+          id: 'user-1',
+          name: 'Taylor',
+          roles: [],
+        })
+      ),
+      http.get('/api/app-info', () => HttpResponse.json({ provider: 'IAM' })),
+      http.get('/api/peoplelookup/options', () =>
+        HttpResponse.json({ allowSensitiveInfo: true })
+      )
+    );
+
+    const { cleanup } = renderRoute({ initialPath: '/' });
+
+    try {
+      await screen.findByRole('tab', { name: 'Employee ID' });
+
+      expect(
+        screen.queryByRole('tab', { name: 'MOTHRA ID' })
+      ).not.toBeInTheDocument();
+    } finally {
+      cleanup();
+    }
+  });
+
   it.each([
     ['Ctrl+Enter', { ctrlKey: true }],
     ['Command+Enter', { metaKey: true }],

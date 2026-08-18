@@ -13,6 +13,7 @@ public partial class PeopleLookupController : ApiControllerBase
     private const string SearchTypeIamId = "iamId";
     private const string SearchTypeKerb = "kerb";
     private const string SearchTypeLastName = "lastName";
+    private const string SearchTypeMothraId = "mothraId";
     private const string SearchTypePpsaDeptCode = "ppsaDeptCode";
     private const string SearchTypePpsId = "ppsId";
     private const string SearchTypeStudentId = "studentId";
@@ -129,6 +130,14 @@ public partial class PeopleLookupController : ApiControllerBase
                     searchText,
                     NumericIdRegex(),
                     value => _identityLookupService.LookupId(PeopleSearchField.ppsId, value),
+                    allowSensitiveInfo,
+                    response.Results);
+                break;
+            case SearchTypeMothraId:
+                await AddLookupMatches(
+                    searchText,
+                    NumericIdRegex(),
+                    value => _identityLookupService.LookupId(PeopleSearchField.mothraId, value),
                     allowSensitiveInfo,
                     response.Results);
                 break;
@@ -328,6 +337,11 @@ public partial class PeopleLookupController : ApiControllerBase
             return SearchTypeLastName;
         }
 
+        if (string.Equals(normalizedSearchType, SearchTypeMothraId, StringComparison.OrdinalIgnoreCase))
+        {
+            return SearchTypeMothraId;
+        }
+
         if (string.Equals(normalizedSearchType, SearchTypePpsaDeptCode, StringComparison.OrdinalIgnoreCase))
         {
             return SearchTypePpsaDeptCode;
@@ -349,6 +363,7 @@ public partial class PeopleLookupController : ApiControllerBase
     private static bool IsSensitiveSearchType(string searchType)
     {
         return string.Equals(searchType, SearchTypeEmployeeId, StringComparison.OrdinalIgnoreCase)
+               || string.Equals(searchType, SearchTypeMothraId, StringComparison.OrdinalIgnoreCase)
                || string.Equals(searchType, SearchTypePpsId, StringComparison.OrdinalIgnoreCase)
                || string.Equals(searchType, SearchTypeStudentId, StringComparison.OrdinalIgnoreCase);
     }

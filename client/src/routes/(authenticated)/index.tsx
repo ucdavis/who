@@ -31,9 +31,14 @@ type PeopleLookupSearchType =
   | 'iamId'
   | 'kerb'
   | 'lastName'
+  | 'mothraId'
   | 'ppsaDeptCode'
   | 'ppsId'
   | 'studentId';
+
+type AppInfo = {
+  provider: 'Rosetta' | 'IAM';
+};
 
 interface PeopleLookupRequest {
   searchText: string;
@@ -103,6 +108,16 @@ const sensitiveSearchOptions: PeopleLookupSearchOption[] = [
     sensitive: true,
     shortcut: 'p',
     value: 'ppsId',
+  },
+];
+
+const rosettaSensitiveSearchOptions: PeopleLookupSearchOption[] = [
+  {
+    label: 'MOTHRA ID',
+    placeholder: 'Paste MOTHRA IDs',
+    sensitive: true,
+    shortcut: 't',
+    value: 'mothraId',
   },
 ];
 
@@ -232,6 +247,10 @@ function detectLabeledSearchType(
     return 'iamId';
   }
 
+  if (/\bmothra\b/i.test(text) && availableSearchTypes.has('mothraId')) {
+    return 'mothraId';
+  }
+
   if (
     /\b(emp|employee)\b/i.test(text) &&
     availableSearchTypes.has('employeeId')
@@ -353,6 +372,12 @@ export function PeopleLookup() {
     staleTime: 5 * 60_000,
   });
 
+  const { data: appInfo } = useQuery({
+    queryFn: ({ signal }) => fetchJson<AppInfo>('/api/app-info', {}, signal),
+    queryKey: ['app-info'],
+    staleTime: Infinity,
+  });
+
   const lookupMutation = useMutation({
     mutationFn: (value: PeopleLookupRequest) =>
       fetchJson<PeopleLookupResponse>('/api/peoplelookup/search', {
@@ -365,13 +390,19 @@ export function PeopleLookup() {
     lookupMutation.data?.allowSensitiveInfo ??
     optionsQuery.data?.allowSensitiveInfo ??
     false;
-  const searchOptions = useMemo(
-    () =>
-      allowSensitiveInfo
-        ? [...standardSearchOptions, ...sensitiveSearchOptions]
-        : standardSearchOptions,
-    [allowSensitiveInfo]
-  );
+  const searchOptions = useMemo(() => {
+    if (!allowSensitiveInfo) {
+      return standardSearchOptions;
+    }
+
+    return appInfo?.provider === 'Rosetta'
+      ? [
+          ...standardSearchOptions,
+          ...sensitiveSearchOptions,
+          ...rosettaSensitiveSearchOptions,
+        ]
+      : [...standardSearchOptions, ...sensitiveSearchOptions];
+  }, [allowSensitiveInfo, appInfo?.provider]);
   const activeSearchType = searchOptions.some(
     (option) => option.value === selectedSearchType
   )

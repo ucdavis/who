@@ -112,6 +112,9 @@ public class RosettaIdentityLookupService : IIdentityLookupService
                 case PeopleSearchField.studentId:
                     people = await _client.Api.PeopleGETAsync(studentid: search);
                     break;
+                case PeopleSearchField.mothraId:
+                    people = await _client.Api.PeopleGETAsync(mothraid: search);
+                    break;
                 case PeopleSearchField.ppsId:
                     people = await _client.Api.PeopleGETAsync(pps_id: search);
                     break;

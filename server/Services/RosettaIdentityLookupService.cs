@@ -148,12 +148,15 @@ public class RosettaIdentityLookupService : IIdentityLookupService, IBulkIdentit
         PeopleSearchField searchField,
         IReadOnlyCollection<string> searches)
     {
-        if (searchField != PeopleSearchField.iamId && searchField != PeopleSearchField.employeeId)
+        if (searchField != PeopleSearchField.iamId
+            && searchField != PeopleSearchField.employeeId
+            && searchField != PeopleSearchField.studentId
+            && searchField != PeopleSearchField.mothraId)
         {
             throw new ArgumentOutOfRangeException(
                 nameof(searchField),
                 searchField,
-                "Bulk Rosetta lookup currently supports IAM IDs and employee IDs only.");
+                "Bulk Rosetta lookup currently supports IAM, employee, student, and MOTHRA IDs only.");
         }
 
         var results = new List<PeopleSearchResult>(searches.Count);
@@ -206,13 +209,20 @@ public class RosettaIdentityLookupService : IIdentityLookupService, IBulkIdentit
             Offset = 0
         };
 
-        if (searchField == PeopleSearchField.iamId)
+        switch (searchField)
         {
-            request.Iamids = batch;
-        }
-        else
-        {
-            request.Employeeids = batch;
+            case PeopleSearchField.iamId:
+                request.Iamids = batch;
+                break;
+            case PeopleSearchField.employeeId:
+                request.Employeeids = batch;
+                break;
+            case PeopleSearchField.studentId:
+                request.Studentids = batch;
+                break;
+            case PeopleSearchField.mothraId:
+                request.Mothraids = batch;
+                break;
         }
 
         return request;
@@ -220,16 +230,23 @@ public class RosettaIdentityLookupService : IIdentityLookupService, IBulkIdentit
 
     private static string? GetSearchValue(Person person, PeopleSearchField searchField)
     {
-        if (searchField == PeopleSearchField.iamId)
+        switch (searchField)
         {
-            return FirstValue(person.Iam_id, person.Id?.Iam_id);
+            case PeopleSearchField.iamId:
+                return FirstValue(person.Iam_id, person.Id?.Iam_id);
+            case PeopleSearchField.employeeId:
+                return FirstValue(
+                    person.Id?.Employee_id,
+                    FirstValue((person.Employee_association ?? [])
+                        .Select(association => association.Employee_id)
+                        .ToArray()));
+            case PeopleSearchField.studentId:
+                return NormalizeValue(person.Id?.Student_id);
+            case PeopleSearchField.mothraId:
+                return NormalizeValue(person.Id?.Mothra_id);
+            default:
+                throw new ArgumentOutOfRangeException(nameof(searchField), searchField, "Unsupported bulk search field.");
         }
-
-        return FirstValue(
-            person.Id?.Employee_id,
-            FirstValue((person.Employee_association ?? [])
-                .Select(association => association.Employee_id)
-                .ToArray()));
     }
 
     private static PeopleSearchResult[] MapPeople(ICollection<Person> people, string search)

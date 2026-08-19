@@ -88,6 +88,42 @@ public class PeopleLookupControllerTests
         identityLookupService.Calls.Should().Equal("LookupIds:employeeId:123456789,987654321");
     }
 
+    [Theory]
+    [InlineData("studentId", PeopleSearchField.studentId)]
+    [InlineData("mothraId", PeopleSearchField.mothraId)]
+    public async Task Search_uses_bulk_lookup_for_supported_rosetta_ids(
+        string searchType,
+        PeopleSearchField searchField)
+    {
+        var identityLookupService = new FakeBulkIdentityLookupService();
+        var controller = CreateController(identityLookupService, allowSensitiveInfo: true);
+
+        await Search(controller, new BulkPeopleLookupRequest
+        {
+            SearchText = "123456789, 987654321",
+            SearchType = searchType,
+        });
+
+        identityLookupService.Calls.Should().Equal($"LookupIds:{searchField}:123456789,987654321");
+    }
+
+    [Fact]
+    public async Task Search_keeps_pps_id_on_individual_lookup_when_bulk_is_supported()
+    {
+        var identityLookupService = new FakeBulkIdentityLookupService();
+        var controller = CreateController(identityLookupService, allowSensitiveInfo: true);
+
+        await Search(controller, new BulkPeopleLookupRequest
+        {
+            SearchText = "123456789, 987654321",
+            SearchType = "ppsId",
+        });
+
+        identityLookupService.Calls.Should().Equal(
+            "LookupId:ppsId:123456789",
+            "LookupId:ppsId:987654321");
+    }
+
     [Fact]
     public async Task Search_uses_individual_lookups_for_iam_ids_when_bulk_is_not_supported()
     {

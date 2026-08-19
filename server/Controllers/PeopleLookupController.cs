@@ -116,10 +116,9 @@ public partial class PeopleLookupController : ApiControllerBase
                     response.Results);
                 break;
             case SearchTypeStudentId:
-                await AddLookupMatches(
+                await AddIdLookupMatches(
                     searchText,
-                    NumericIdRegex(),
-                    value => _identityLookupService.LookupId(PeopleSearchField.studentId, value),
+                    PeopleSearchField.studentId,
                     allowSensitiveInfo,
                     response.Results);
                 break;
@@ -132,10 +131,9 @@ public partial class PeopleLookupController : ApiControllerBase
                     response.Results);
                 break;
             case SearchTypeMothraId:
-                await AddLookupMatches(
+                await AddIdLookupMatches(
                     searchText,
-                    NumericIdRegex(),
-                    value => _identityLookupService.LookupId(PeopleSearchField.mothraId, value),
+                    PeopleSearchField.mothraId,
                     allowSensitiveInfo,
                     response.Results);
                 break;

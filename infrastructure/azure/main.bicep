@@ -52,6 +52,25 @@ param authCallbackPath string = '/signin-oidc'
 @description('IAM people lookup API key.')
 param peopleLookupIamKey string
 
+@description('Whether Rosetta should provide people lookup data.')
+param useRosettaLookup string = ''
+
+@description('Base URL used by the Rosetta client.')
+param rosettaClientBaseUrl string = ''
+
+@description('OAuth client ID used by the Rosetta client.')
+param rosettaClientId string = ''
+
+@secure()
+@description('OAuth client secret used by the Rosetta client.')
+param rosettaClientSecret string = ''
+
+@description('OAuth scope used by the Rosetta client.')
+param rosettaClientScope string = ''
+
+@description('OAuth token URL used by the Rosetta client.')
+param rosettaClientTokenUrl string = ''
+
 @description('Optional OTLP exporter endpoint. Leave empty when no external OTLP collector is configured.')
 param otelExporterOtlpEndpoint string = ''
 
@@ -131,6 +150,12 @@ module compute 'modules/compute.bicep' = if (deploymentGuardPassed) {
     authInstance: authInstance
     authCallbackPath: authCallbackPath
     peopleLookupIamKey: peopleLookupIamKey
+    useRosettaLookup: useRosettaLookup
+    rosettaClientBaseUrl: rosettaClientBaseUrl
+    rosettaClientId: rosettaClientId
+    rosettaClientSecret: rosettaClientSecret
+    rosettaClientScope: rosettaClientScope
+    rosettaClientTokenUrl: rosettaClientTokenUrl
     otelExporterOtlpEndpoint: otelExporterOtlpEndpoint
     otelExporterOtlpProtocol: otelExporterOtlpProtocol
     otelExporterOtlpHeaders: otelExporterOtlpHeaders

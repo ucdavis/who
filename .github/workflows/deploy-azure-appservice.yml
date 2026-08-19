@@ -49,6 +49,9 @@ on:
       PEOPLELOOKUP_IAMKEY:
         description: IAM people lookup API key.
         required: false
+      ROSETTACLIENT__CLIENTSECRET:
+        description: OAuth client secret used by the Rosetta client.
+        required: false
 
 permissions:
   contents: read
@@ -81,7 +84,13 @@ jobs:
       OTEL_SERVICE_NAME: ${{ vars.OTEL_SERVICE_NAME }}
       PEOPLELOOKUP_IAMKEY: ${{ secrets.PEOPLELOOKUP_IAMKEY }}
       PEOPLELOOKUP_SENSITIVEINFOUSERS: ${{ vars.PEOPLELOOKUP_SENSITIVEINFOUSERS }}
+      ROSETTACLIENT__BASEURL: ${{ vars.ROSETTACLIENT__BASEURL }}
+      ROSETTACLIENT__CLIENTID: ${{ vars.ROSETTACLIENT__CLIENTID }}
+      ROSETTACLIENT__CLIENTSECRET: ${{ secrets.ROSETTACLIENT__CLIENTSECRET }}
+      ROSETTACLIENT__SCOPE: ${{ vars.ROSETTACLIENT__SCOPE }}
+      ROSETTACLIENT__TOKENURL: ${{ vars.ROSETTACLIENT__TOKENURL }}
       RESOURCE_GROUP: ${{ inputs.resource_group || vars.RESOURCE_GROUP }}
+      USEROSETTALOOKUP: ${{ vars.USEROSETTALOOKUP }}
       WEB_APP_NAME_INPUT: ${{ inputs.web_app_name || vars.WEB_APP_NAME }}
       WEB_SKU_NAME: ${{ vars.WEB_SKU_NAME }}
       WEB_SKU_TIER: ${{ vars.WEB_SKU_TIER }}
@@ -213,6 +222,12 @@ jobs:
           add_param "authInstance" "$AUTH_INSTANCE"
           add_param "authCallbackPath" "$AUTH_CALLBACK_PATH"
           add_param "peopleLookupIamKey" "$PEOPLELOOKUP_IAMKEY"
+          add_param "useRosettaLookup" "$USEROSETTALOOKUP"
+          add_param "rosettaClientBaseUrl" "$ROSETTACLIENT__BASEURL"
+          add_param "rosettaClientId" "$ROSETTACLIENT__CLIENTID"
+          add_param "rosettaClientSecret" "$ROSETTACLIENT__CLIENTSECRET"
+          add_param "rosettaClientScope" "$ROSETTACLIENT__SCOPE"
+          add_param "rosettaClientTokenUrl" "$ROSETTACLIENT__TOKENURL"
           add_param "otelExporterOtlpEndpoint" "$OTEL_EXPORTER_OTLP_ENDPOINT"
           add_param "otelExporterOtlpProtocol" "$OTEL_EXPORTER_OTLP_PROTOCOL"
           add_param "otelExporterOtlpHeaders" "$OTEL_EXPORTER_OTLP_HEADERS"
@@ -275,6 +290,12 @@ jobs:
           add_setting "Auth__CallbackPath" "$AUTH_CALLBACK_PATH"
           add_setting "PeopleLookup__IamKey" "$PEOPLELOOKUP_IAMKEY"
           add_setting "PeopleLookup__SensitiveInfoUsers" "$PEOPLELOOKUP_SENSITIVEINFOUSERS"
+          add_setting "UseRosettaLookup" "$USEROSETTALOOKUP"
+          add_setting "RosettaClient__BaseUrl" "$ROSETTACLIENT__BASEURL"
+          add_setting "RosettaClient__ClientId" "$ROSETTACLIENT__CLIENTID"
+          add_setting "RosettaClient__ClientSecret" "$ROSETTACLIENT__CLIENTSECRET"
+          add_setting "RosettaClient__Scope" "$ROSETTACLIENT__SCOPE"
+          add_setting "RosettaClient__TokenUrl" "$ROSETTACLIENT__TOKENURL"
           add_setting "OTEL_EXPORTER_OTLP_ENDPOINT" "$OTEL_EXPORTER_OTLP_ENDPOINT"
           add_setting "OTEL_EXPORTER_OTLP_PROTOCOL" "$OTEL_EXPORTER_OTLP_PROTOCOL"
           add_setting "OTEL_EXPORTER_OTLP_HEADERS" "$OTEL_EXPORTER_OTLP_HEADERS"

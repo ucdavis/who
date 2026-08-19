@@ -70,25 +70,29 @@ public partial class PeopleLookupController : ApiControllerBase
         switch (searchType)
         {
             case SearchTypeEmail:
-                await AddLookupMatches(
+                await AddProviderLookupMatches(
                     searchText,
                     EmailRegex(),
+                    BulkPeopleSearchField.Email,
                     value => _identityLookupService.Lookup(value),
                     allowSensitiveInfo,
                     response.Results);
                 break;
             case SearchTypeKerb:
-                await AddLookupMatches(
+                await AddProviderLookupMatches(
                     searchText,
                     KerbRegex(),
+                    BulkPeopleSearchField.LoginId,
                     value => _identityLookupService.Lookup(value),
                     allowSensitiveInfo,
                     response.Results);
                 break;
             case SearchTypeIamId:
-                await AddIdLookupMatches(
+                await AddProviderLookupMatches(
                     searchText,
-                    PeopleSearchField.iamId,
+                    NumericIdRegex(),
+                    BulkPeopleSearchField.IamId,
+                    value => _identityLookupService.LookupId(PeopleSearchField.iamId, value),
                     allowSensitiveInfo,
                     response.Results);
                 break;
@@ -109,16 +113,20 @@ public partial class PeopleLookupController : ApiControllerBase
                     response.Results);
                 break;
             case SearchTypeEmployeeId:
-                await AddIdLookupMatches(
+                await AddProviderLookupMatches(
                     searchText,
-                    PeopleSearchField.employeeId,
+                    NumericIdRegex(),
+                    BulkPeopleSearchField.EmployeeId,
+                    value => _identityLookupService.LookupId(PeopleSearchField.employeeId, value),
                     allowSensitiveInfo,
                     response.Results);
                 break;
             case SearchTypeStudentId:
-                await AddIdLookupMatches(
+                await AddProviderLookupMatches(
                     searchText,
-                    PeopleSearchField.studentId,
+                    NumericIdRegex(),
+                    BulkPeopleSearchField.StudentId,
+                    value => _identityLookupService.LookupId(PeopleSearchField.studentId, value),
                     allowSensitiveInfo,
                     response.Results);
                 break;
@@ -131,9 +139,11 @@ public partial class PeopleLookupController : ApiControllerBase
                     response.Results);
                 break;
             case SearchTypeMothraId:
-                await AddIdLookupMatches(
+                await AddProviderLookupMatches(
                     searchText,
-                    PeopleSearchField.mothraId,
+                    NumericIdRegex(),
+                    BulkPeopleSearchField.MothraId,
+                    value => _identityLookupService.LookupId(PeopleSearchField.mothraId, value),
                     allowSensitiveInfo,
                     response.Results);
                 break;
@@ -260,9 +270,11 @@ public partial class PeopleLookupController : ApiControllerBase
         AddResults(await Task.WhenAll(lookupTasks), allowSensitiveInfo, results);
     }
 
-    private async Task AddIdLookupMatches(
+    private async Task AddProviderLookupMatches(
         string? rawSearch,
-        PeopleSearchField searchField,
+        Regex regex,
+        BulkPeopleSearchField searchField,
+        Func<string, Task<PeopleSearchResult>> individualLookup,
         bool allowSensitiveInfo,
         IList<PeopleSearchResult> results)
     {
@@ -270,8 +282,8 @@ public partial class PeopleLookupController : ApiControllerBase
         {
             await AddBulkLookupMatches(
                 rawSearch,
-                NumericIdRegex(),
-                values => bulkIdentityLookupService.LookupIds(searchField, values),
+                regex,
+                values => bulkIdentityLookupService.LookupMany(searchField, values),
                 allowSensitiveInfo,
                 results);
             return;
@@ -279,8 +291,8 @@ public partial class PeopleLookupController : ApiControllerBase
 
         await AddLookupMatches(
             rawSearch,
-            NumericIdRegex(),
-            value => _identityLookupService.LookupId(searchField, value),
+            regex,
+            individualLookup,
             allowSensitiveInfo,
             results);
     }

@@ -144,19 +144,16 @@ public class RosettaIdentityLookupService : IIdentityLookupService, IBulkIdentit
         }
     }
 
-    public async Task<PeopleSearchResult[]> LookupIds(
-        PeopleSearchField searchField,
+    public async Task<PeopleSearchResult[]> LookupMany(
+        BulkPeopleSearchField searchField,
         IReadOnlyCollection<string> searches)
     {
-        if (searchField != PeopleSearchField.iamId
-            && searchField != PeopleSearchField.employeeId
-            && searchField != PeopleSearchField.studentId
-            && searchField != PeopleSearchField.mothraId)
+        if (!Enum.IsDefined(searchField))
         {
             throw new ArgumentOutOfRangeException(
                 nameof(searchField),
                 searchField,
-                "Bulk Rosetta lookup currently supports IAM, employee, student, and MOTHRA IDs only.");
+                "Unsupported Rosetta bulk search field.");
         }
 
         var results = new List<PeopleSearchResult>(searches.Count);
@@ -167,14 +164,13 @@ public class RosettaIdentityLookupService : IIdentityLookupService, IBulkIdentit
             {
                 var people = await _client.Api.PeoplePOSTAsync(CreatePostRequest(searchField, batch));
                 var peopleBySearchValue = people
-                    .Select(person => new
-                    {
-                        SearchValue = GetSearchValue(person, searchField),
-                        Person = person
-                    })
-                    .Where(item => item.SearchValue != null)
-                    .GroupBy(item => item.SearchValue!, StringComparer.Ordinal)
-                    .ToDictionary(group => group.Key, group => group.First().Person, StringComparer.Ordinal);
+                    .SelectMany(person => GetSearchValues(person, searchField)
+                        .Select(searchValue => new { SearchValue = searchValue, Person = person }))
+                    .GroupBy(item => item.SearchValue, StringComparer.OrdinalIgnoreCase)
+                    .ToDictionary(
+                        group => group.Key,
+                        group => group.First().Person,
+                        StringComparer.OrdinalIgnoreCase);
 
                 foreach (var search in batch)
                 {
@@ -191,7 +187,7 @@ public class RosettaIdentityLookupService : IIdentityLookupService, IBulkIdentit
                     {
                         SearchValue = search,
                         ErrorMessage = "Error Occurred",
-                        ExceptionMessage = $"(LookupIds) Error: {e.Message} Inner: {e.InnerException?.Message} {e}"
+                        ExceptionMessage = $"(LookupMany) Error: {e.Message} Inner: {e.InnerException?.Message} {e}"
                     });
                 }
             }
@@ -200,7 +196,7 @@ public class RosettaIdentityLookupService : IIdentityLookupService, IBulkIdentit
         return results.ToArray();
     }
 
-    private static PeoplePostRequest CreatePostRequest(PeopleSearchField searchField, string[] batch)
+    private static PeoplePostRequest CreatePostRequest(BulkPeopleSearchField searchField, string[] batch)
     {
         var request = new PeoplePostRequest
         {
@@ -211,42 +207,68 @@ public class RosettaIdentityLookupService : IIdentityLookupService, IBulkIdentit
 
         switch (searchField)
         {
-            case PeopleSearchField.iamId:
+            case BulkPeopleSearchField.Email:
+                request.Emails = batch;
+                break;
+            case BulkPeopleSearchField.LoginId:
+                request.Loginids = batch;
+                break;
+            case BulkPeopleSearchField.IamId:
                 request.Iamids = batch;
                 break;
-            case PeopleSearchField.employeeId:
+            case BulkPeopleSearchField.EmployeeId:
                 request.Employeeids = batch;
                 break;
-            case PeopleSearchField.studentId:
+            case BulkPeopleSearchField.StudentId:
                 request.Studentids = batch;
                 break;
-            case PeopleSearchField.mothraId:
+            case BulkPeopleSearchField.MothraId:
                 request.Mothraids = batch;
                 break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(searchField), searchField, "Unsupported bulk search field.");
         }
 
         return request;
     }
 
-    private static string? GetSearchValue(Person person, PeopleSearchField searchField)
+    private static IEnumerable<string> GetSearchValues(Person person, BulkPeopleSearchField searchField)
     {
         switch (searchField)
         {
-            case PeopleSearchField.iamId:
-                return FirstValue(person.Iam_id, person.Id?.Iam_id);
-            case PeopleSearchField.employeeId:
-                return FirstValue(
-                    person.Id?.Employee_id,
-                    FirstValue((person.Employee_association ?? [])
-                        .Select(association => association.Employee_id)
-                        .ToArray()));
-            case PeopleSearchField.studentId:
-                return NormalizeValue(person.Id?.Student_id);
-            case PeopleSearchField.mothraId:
-                return NormalizeValue(person.Id?.Mothra_id);
+            case BulkPeopleSearchField.Email:
+                return NormalizeValues(person.Email?.Campus, person.Email?.Health, person.Email?.Personal);
+            case BulkPeopleSearchField.LoginId:
+                return NormalizeValues(person.Id?.Login_id);
+            case BulkPeopleSearchField.IamId:
+                return NormalizeValues(person.Iam_id, person.Id?.Iam_id);
+            case BulkPeopleSearchField.EmployeeId:
+                return NormalizeValues(
+                    new[] { person.Id?.Employee_id }
+                        .Concat((person.Employee_association ?? [])
+                            .Select(association => association.Employee_id)));
+            case BulkPeopleSearchField.StudentId:
+                return NormalizeValues(person.Id?.Student_id);
+            case BulkPeopleSearchField.MothraId:
+                return NormalizeValues(person.Id?.Mothra_id);
             default:
                 throw new ArgumentOutOfRangeException(nameof(searchField), searchField, "Unsupported bulk search field.");
         }
+    }
+
+    private static string[] NormalizeValues(params string?[] values)
+    {
+        return NormalizeValues(values.AsEnumerable());
+    }
+
+    private static string[] NormalizeValues(IEnumerable<string?> values)
+    {
+        return values
+            .Select(NormalizeValue)
+            .Where(value => value != null)
+            .Select(value => value!)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
     }
 
     private static PeopleSearchResult[] MapPeople(ICollection<Person> people, string search)

@@ -17,7 +17,9 @@ public interface IIdentityLookupService
 
 public interface IBulkIdentityLookupService
 {
-    Task<PeopleSearchResult[]> LookupIds(PeopleSearchField searchField, IReadOnlyCollection<string> searches);
+    Task<PeopleSearchResult[]> LookupMany(
+        BulkPeopleSearchField searchField,
+        IReadOnlyCollection<string> searches);
 }
 
 public class IdentityLookupService : IIdentityLookupService

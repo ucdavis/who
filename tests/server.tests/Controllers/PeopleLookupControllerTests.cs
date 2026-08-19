@@ -69,7 +69,7 @@ public class PeopleLookupControllerTests
         });
 
         response.Results.Select(result => result.SearchValue).Should().Equal("1234567890", "0987654321");
-        identityLookupService.Calls.Should().Equal("LookupIds:iamId:1234567890,0987654321");
+        identityLookupService.Calls.Should().Equal("LookupMany:IamId:1234567890,0987654321");
     }
 
     [Fact]
@@ -85,15 +85,15 @@ public class PeopleLookupControllerTests
         });
 
         response.Results.Select(result => result.SearchValue).Should().Equal("123456789", "987654321");
-        identityLookupService.Calls.Should().Equal("LookupIds:employeeId:123456789,987654321");
+        identityLookupService.Calls.Should().Equal("LookupMany:EmployeeId:123456789,987654321");
     }
 
     [Theory]
-    [InlineData("studentId", PeopleSearchField.studentId)]
-    [InlineData("mothraId", PeopleSearchField.mothraId)]
+    [InlineData("studentId", BulkPeopleSearchField.StudentId)]
+    [InlineData("mothraId", BulkPeopleSearchField.MothraId)]
     public async Task Search_uses_bulk_lookup_for_supported_rosetta_ids(
         string searchType,
-        PeopleSearchField searchField)
+        BulkPeopleSearchField searchField)
     {
         var identityLookupService = new FakeBulkIdentityLookupService();
         var controller = CreateController(identityLookupService, allowSensitiveInfo: true);
@@ -104,7 +104,29 @@ public class PeopleLookupControllerTests
             SearchType = searchType,
         });
 
-        identityLookupService.Calls.Should().Equal($"LookupIds:{searchField}:123456789,987654321");
+        identityLookupService.Calls.Should().Equal($"LookupMany:{searchField}:123456789,987654321");
+    }
+
+    [Theory]
+    [InlineData("email", "First <first@example.com>; Second <second@example.com>", BulkPeopleSearchField.Email,
+        "first@example.com,second@example.com")]
+    [InlineData("kerb", "first second", BulkPeopleSearchField.LoginId, "first,second")]
+    public async Task Search_uses_bulk_lookup_for_email_and_kerb_when_supported(
+        string searchType,
+        string searchText,
+        BulkPeopleSearchField searchField,
+        string expectedValues)
+    {
+        var identityLookupService = new FakeBulkIdentityLookupService();
+        var controller = CreateController(identityLookupService, allowSensitiveInfo: true);
+
+        await Search(controller, new BulkPeopleLookupRequest
+        {
+            SearchText = searchText,
+            SearchType = searchType,
+        });
+
+        identityLookupService.Calls.Should().Equal($"LookupMany:{searchField}:{expectedValues}");
     }
 
     [Fact]
@@ -396,11 +418,11 @@ public class PeopleLookupControllerTests
 
     private sealed class FakeBulkIdentityLookupService : FakeIdentityLookupService, IBulkIdentityLookupService
     {
-        public Task<PeopleSearchResult[]> LookupIds(
-            PeopleSearchField searchField,
+        public Task<PeopleSearchResult[]> LookupMany(
+            BulkPeopleSearchField searchField,
             IReadOnlyCollection<string> searches)
         {
-            Calls.Add($"LookupIds:{searchField}:{string.Join(',', searches)}");
+            Calls.Add($"LookupMany:{searchField}:{string.Join(',', searches)}");
             return Task.FromResult(searches.Select(NotFound).ToArray());
         }
     }

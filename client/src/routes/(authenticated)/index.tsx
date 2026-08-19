@@ -31,9 +31,14 @@ type PeopleLookupSearchType =
   | 'iamId'
   | 'kerb'
   | 'lastName'
+  | 'mothraId'
   | 'ppsaDeptCode'
   | 'ppsId'
   | 'studentId';
+
+type AppInfo = {
+  provider: 'Rosetta' | 'IAM';
+};
 
 interface PeopleLookupRequest {
   searchText: string;
@@ -106,6 +111,16 @@ const sensitiveSearchOptions: PeopleLookupSearchOption[] = [
   },
 ];
 
+const rosettaSensitiveSearchOptions: PeopleLookupSearchOption[] = [
+  {
+    label: 'MOTHRA ID',
+    placeholder: 'Paste MOTHRA IDs',
+    sensitive: true,
+    shortcut: 't',
+    value: 'mothraId',
+  },
+];
+
 const defaultSearchType: PeopleLookupSearchType = 'email';
 const detectedLineLimit = 6;
 
@@ -126,7 +141,8 @@ const standardCsvColumns: CsvColumn<PeopleSearchResult>[] = [
   { header: 'Kerb Id', key: 'kerbId' },
   { header: 'IAM Id', key: 'iamId' },
   { header: 'Email', key: 'email' },
-  { header: 'Full Name', key: 'fullName' },
+  { header: 'Display Name', key: 'displayName' },
+  { header: 'Full Lived Name', key: 'fullLivedName' },
   { header: 'Pronouns', key: 'pronouns' },
   { header: 'First Name', key: 'firstName' },
   { header: 'Last Name', key: 'lastName' },
@@ -144,7 +160,6 @@ const standardCsvColumns: CsvColumn<PeopleSearchResult>[] = [
 ];
 
 const sensitiveCsvColumns: CsvColumn<PeopleSearchResult>[] = [
-  { header: 'Official Full Name', key: 'officialFullName' },
   { header: 'Mothra Id', key: 'mothraId' },
   { header: 'PPS Id', key: 'ppsId' },
   { header: 'Employee Id', key: 'employeeId' },
@@ -230,6 +245,10 @@ function detectLabeledSearchType(
 ) {
   if (/\biam\b/i.test(text) && availableSearchTypes.has('iamId')) {
     return 'iamId';
+  }
+
+  if (/\bmothra\b/i.test(text) && availableSearchTypes.has('mothraId')) {
+    return 'mothraId';
   }
 
   if (
@@ -353,6 +372,12 @@ export function PeopleLookup() {
     staleTime: 5 * 60_000,
   });
 
+  const { data: appInfo } = useQuery({
+    queryFn: ({ signal }) => fetchJson<AppInfo>('/api/app-info', {}, signal),
+    queryKey: ['app-info'],
+    staleTime: Infinity,
+  });
+
   const lookupMutation = useMutation({
     mutationFn: (value: PeopleLookupRequest) =>
       fetchJson<PeopleLookupResponse>('/api/peoplelookup/search', {
@@ -365,13 +390,19 @@ export function PeopleLookup() {
     lookupMutation.data?.allowSensitiveInfo ??
     optionsQuery.data?.allowSensitiveInfo ??
     false;
-  const searchOptions = useMemo(
-    () =>
-      allowSensitiveInfo
-        ? [...standardSearchOptions, ...sensitiveSearchOptions]
-        : standardSearchOptions,
-    [allowSensitiveInfo]
-  );
+  const searchOptions = useMemo(() => {
+    if (!allowSensitiveInfo) {
+      return standardSearchOptions;
+    }
+
+    return appInfo?.provider === 'Rosetta'
+      ? [
+          ...standardSearchOptions,
+          ...sensitiveSearchOptions,
+          ...rosettaSensitiveSearchOptions,
+        ]
+      : [...standardSearchOptions, ...sensitiveSearchOptions];
+  }, [allowSensitiveInfo, appInfo?.provider]);
   const activeSearchType = searchOptions.some(
     (option) => option.value === selectedSearchType
   )
@@ -445,8 +476,8 @@ export function PeopleLookup() {
         header: 'Email',
       },
       {
-        accessorKey: 'fullName',
-        header: 'Full Name',
+        accessorKey: 'displayName',
+        header: 'Display Name',
       },
       {
         accessorKey: 'isStudent',
@@ -803,7 +834,7 @@ function PersonDetailsModal({
           <div>
             <h3 className="text-lg font-bold">Person Details</h3>
             <p className="text-sm text-base-content/70">
-              {result.fullName || result.searchValue || 'Lookup result'}
+              {result.displayName || result.searchValue || 'Lookup result'}
             </p>
           </div>
           <button

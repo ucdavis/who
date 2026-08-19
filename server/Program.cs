@@ -8,6 +8,7 @@ using Server.Helpers;
 using Server.Models.PeopleLookup;
 using Server.Services;
 using Server.Swagger;
+using UCD.Rosetta.Client.Core.Extensions;
 
 WebApplication? app = null;
 
@@ -55,7 +56,17 @@ try
 
     // add scoped services here
     builder.Services.AddScoped<IUserService, UserService>();
-    builder.Services.AddScoped<IIdentityLookupService, IdentityLookupService>();
+    var useRosettaLookup = builder.Configuration.GetValue<bool>("UseRosettaLookup");
+    if (useRosettaLookup)
+    {
+        builder.Services.AddRosettaClientWithFactory(options =>
+            builder.Configuration.GetSection("RosettaClient").Bind(options));
+        builder.Services.AddScoped<IIdentityLookupService, RosettaIdentityLookupService>();
+    }
+    else
+    {
+        builder.Services.AddScoped<IIdentityLookupService, IdentityLookupService>();
+    }
     builder.Services.AddScoped<IPeopleLookupPermissionService, PeopleLookupPermissionService>();
     // add auth policies here
 
@@ -70,6 +81,11 @@ try
             Title = "People Lookup API",
             Version = "v1"
         });
+        c.SwaggerDoc("rosetta", new OpenApiInfo
+        {
+            Title = "Rosetta API",
+            Version = "v1"
+        });
         c.MapType<PPSAssociationsSearchField>(() => new OpenApiSchema
         {
             Type = "string",
@@ -80,10 +96,19 @@ try
             Example = new OpenApiString("bouOrgOId")
         });
         c.OperationFilter<IamwsSwaggerOperationFilter>();
-        c.DocInclusionPredicate((_, apiDescription) =>
+        c.DocInclusionPredicate((documentName, apiDescription) =>
         {
-            return apiDescription.ActionDescriptor.RouteValues.TryGetValue("controller", out var controllerName) &&
-                   string.Equals(controllerName, "Iamws", StringComparison.OrdinalIgnoreCase);
+            if (!apiDescription.ActionDescriptor.RouteValues.TryGetValue("controller", out var controllerName))
+            {
+                return false;
+            }
+
+            return documentName switch
+            {
+                "v1" => string.Equals(controllerName, "Iamws", StringComparison.OrdinalIgnoreCase),
+                "rosetta" => string.Equals(controllerName, "Rosetta", StringComparison.OrdinalIgnoreCase),
+                _ => false
+            };
         });
     });
 
@@ -149,11 +174,13 @@ try
     app.UseSwaggerUI(c =>
     {
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "People Lookup API V1");
+        c.SwaggerEndpoint("/swagger/rosetta/swagger.json", "Rosetta API V1");
     });
     app.UseSwaggerUI(c =>
     {
         c.RoutePrefix = "Swagger";
         c.SwaggerEndpoint("/Swagger/v1/swagger.json", "People Lookup API V1");
+        c.SwaggerEndpoint("/Swagger/rosetta/swagger.json", "Rosetta API V1");
     });
 
     // Configure the HTTP request pipeline.
@@ -173,6 +200,12 @@ try
     // app.UseHttpLogging(); // if you want extra logging. It's a little overkill though with the current logging setup
 
     app.MapControllers();
+
+    app.MapGet("/api/app-info", () => new
+        {
+            Provider = useRosettaLookup ? "Rosetta" : "IAM"
+        })
+        .AllowAnonymous();
 
     var healthEndpoint = app.MapHealthChecks("/health");
 

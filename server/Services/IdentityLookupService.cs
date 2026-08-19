@@ -15,6 +15,13 @@ public interface IIdentityLookupService
     Task<PeopleSearchResult[]> LookupPpsaCode(string search);
 }
 
+public interface IBulkIdentityLookupService
+{
+    Task<PeopleSearchResult[]> LookupMany(
+        BulkPeopleSearchField searchField,
+        IReadOnlyCollection<string> searches);
+}
+
 public class IdentityLookupService : IIdentityLookupService
 {
     private readonly IetClient _clientws;
@@ -364,8 +371,8 @@ public class IdentityLookupService : IIdentityLookupService
         searchResult.Email = contact?.Email;
         searchResult.OtherEmails = emails.Count > 0 ? string.Join("; ", emails) : null;
         searchResult.WorkPhone = contact?.WorkPhone;
-        searchResult.FullName = kerbResult.FullName;
-        searchResult.OfficialFullName = kerbResult.OFullName;
+        searchResult.DisplayName = kerbResult.FullName;
+        searchResult.FullLivedName = kerbResult.OFullName;
         searchResult.FirstName = kerbResult.FirstName;
         searchResult.LastName = kerbResult.LastName;
         searchResult.Pronouns = kerbResult.DPronouns;
@@ -401,8 +408,8 @@ public class IdentityLookupService : IIdentityLookupService
         searchResult.Email = contact?.Email;
         searchResult.OtherEmails = emails.Count > 0 ? string.Join("; ", emails) : null;
         searchResult.WorkPhone = contact?.WorkPhone;
-        searchResult.FullName = personResult.FullName;
-        searchResult.OfficialFullName = personResult.OFullName;
+        searchResult.DisplayName = personResult.FullName;
+        searchResult.FullLivedName = personResult.OFullName;
         searchResult.FirstName = personResult.FirstName;
         searchResult.Pronouns = personResult.DPronouns;
         searchResult.LastName = personResult.LastName;

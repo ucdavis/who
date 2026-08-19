@@ -17,7 +17,7 @@ public class PeopleLookupControllerTests
         var identityLookupService = new FakeIdentityLookupService
         {
             LookupHandler = search => search == "person@example.com"
-                ? Found(search, fullName: "Email Match")
+                ? Found(search, displayName: "Email Match", fullLivedName: "Email Lived Name")
                 : NotFound(search)
         };
         var controller = CreateController(identityLookupService, allowSensitiveInfo: false);
@@ -28,8 +28,9 @@ public class PeopleLookupControllerTests
             SearchType = "email",
         });
 
-        response.Results.Should().ContainSingle()
-            .Which.FullName.Should().Be("Email Match");
+        var result = response.Results.Should().ContainSingle().Subject;
+        result.DisplayName.Should().Be("Email Match");
+        result.FullLivedName.Should().Be("Email Lived Name");
         identityLookupService.Calls.Should().Equal("Lookup:person@example.com");
     }
 
@@ -39,7 +40,7 @@ public class PeopleLookupControllerTests
         var identityLookupService = new FakeIdentityLookupService
         {
             LookupIdHandler = (field, search) => field == PeopleSearchField.employeeId && search == "12345"
-                ? Found(search, fullName: "Employee Match")
+                ? Found(search, displayName: "Employee Match")
                 : NotFound(search)
         };
         var controller = CreateController(identityLookupService, allowSensitiveInfo: true);
@@ -51,8 +52,137 @@ public class PeopleLookupControllerTests
         });
 
         response.Results.Should().ContainSingle()
-            .Which.FullName.Should().Be("Employee Match");
+            .Which.DisplayName.Should().Be("Employee Match");
         identityLookupService.Calls.Should().Equal("LookupId:employeeId:12345");
+    }
+
+    [Fact]
+    public async Task Search_uses_bulk_lookup_for_iam_ids_when_supported()
+    {
+        var identityLookupService = new FakeBulkIdentityLookupService();
+        var controller = CreateController(identityLookupService, allowSensitiveInfo: true);
+
+        var response = await Search(controller, new BulkPeopleLookupRequest
+        {
+            SearchText = "1234567890, 0987654321",
+            SearchType = "iamId",
+        });
+
+        response.Results.Select(result => result.SearchValue).Should().Equal("1234567890", "0987654321");
+        identityLookupService.Calls.Should().Equal("LookupMany:IamId:1234567890,0987654321");
+    }
+
+    [Fact]
+    public async Task Search_uses_bulk_lookup_for_employee_ids_when_supported()
+    {
+        var identityLookupService = new FakeBulkIdentityLookupService();
+        var controller = CreateController(identityLookupService, allowSensitiveInfo: true);
+
+        var response = await Search(controller, new BulkPeopleLookupRequest
+        {
+            SearchText = "123456789, 987654321",
+            SearchType = "employeeId",
+        });
+
+        response.Results.Select(result => result.SearchValue).Should().Equal("123456789", "987654321");
+        identityLookupService.Calls.Should().Equal("LookupMany:EmployeeId:123456789,987654321");
+    }
+
+    [Theory]
+    [InlineData("studentId", BulkPeopleSearchField.StudentId)]
+    [InlineData("mothraId", BulkPeopleSearchField.MothraId)]
+    public async Task Search_uses_bulk_lookup_for_supported_rosetta_ids(
+        string searchType,
+        BulkPeopleSearchField searchField)
+    {
+        var identityLookupService = new FakeBulkIdentityLookupService();
+        var controller = CreateController(identityLookupService, allowSensitiveInfo: true);
+
+        await Search(controller, new BulkPeopleLookupRequest
+        {
+            SearchText = "123456789, 987654321",
+            SearchType = searchType,
+        });
+
+        identityLookupService.Calls.Should().Equal($"LookupMany:{searchField}:123456789,987654321");
+    }
+
+    [Theory]
+    [InlineData("email", "First <first@example.com>; Second <second@example.com>", BulkPeopleSearchField.Email,
+        "first@example.com,second@example.com")]
+    [InlineData("kerb", "first second", BulkPeopleSearchField.LoginId, "first,second")]
+    public async Task Search_uses_bulk_lookup_for_email_and_kerb_when_supported(
+        string searchType,
+        string searchText,
+        BulkPeopleSearchField searchField,
+        string expectedValues)
+    {
+        var identityLookupService = new FakeBulkIdentityLookupService();
+        var controller = CreateController(identityLookupService, allowSensitiveInfo: true);
+
+        await Search(controller, new BulkPeopleLookupRequest
+        {
+            SearchText = searchText,
+            SearchType = searchType,
+        });
+
+        identityLookupService.Calls.Should().Equal($"LookupMany:{searchField}:{expectedValues}");
+    }
+
+    [Fact]
+    public async Task Search_keeps_pps_id_on_individual_lookup_when_bulk_is_supported()
+    {
+        var identityLookupService = new FakeBulkIdentityLookupService();
+        var controller = CreateController(identityLookupService, allowSensitiveInfo: true);
+
+        await Search(controller, new BulkPeopleLookupRequest
+        {
+            SearchText = "123456789, 987654321",
+            SearchType = "ppsId",
+        });
+
+        identityLookupService.Calls.Should().Equal(
+            "LookupId:ppsId:123456789",
+            "LookupId:ppsId:987654321");
+    }
+
+    [Fact]
+    public async Task Search_uses_individual_lookups_for_iam_ids_when_bulk_is_not_supported()
+    {
+        var identityLookupService = new FakeIdentityLookupService();
+        var controller = CreateController(identityLookupService, allowSensitiveInfo: true);
+
+        await Search(controller, new BulkPeopleLookupRequest
+        {
+            SearchText = "1234567890, 0987654321",
+            SearchType = "iamId",
+        });
+
+        identityLookupService.Calls.Should().Equal(
+            "LookupId:iamId:1234567890",
+            "LookupId:iamId:0987654321");
+    }
+
+    [Fact]
+    public async Task Search_uses_mothra_id_search_type_when_authorized()
+    {
+        var identityLookupService = new FakeIdentityLookupService
+        {
+            LookupIdHandler = (field, search) => field == PeopleSearchField.mothraId && search == "12345"
+                ? Found(search, displayName: "MOTHRA Match")
+                : NotFound(search)
+        };
+        var controller = CreateController(identityLookupService, allowSensitiveInfo: true);
+
+        var response = await Search(controller, new BulkPeopleLookupRequest
+        {
+            SearchText = "12345",
+            SearchType = "mothraId",
+        });
+
+        response.Results.Should().ContainSingle()
+            .Which.DisplayName.Should().Be("MOTHRA Match");
+        identityLookupService.Calls.Should().Equal("LookupId:mothraId:12345");
     }
 
     [Fact]
@@ -64,7 +194,7 @@ public class PeopleLookupControllerTests
         var response = await Search(controller, new BulkPeopleLookupRequest
         {
             SearchText = "12345",
-            SearchType = "studentId",
+            SearchType = "mothraId",
         });
 
         response.Message.Should().Be("Sensitive identifier searches were ignored for your account.");
@@ -78,7 +208,7 @@ public class PeopleLookupControllerTests
         var identityLookupService = new FakeIdentityLookupService
         {
             LookupHandler = search => search == "person@example.com"
-                ? Found(search, fullName: "Email Match")
+                ? Found(search, displayName: "Email Match")
                 : NotFound(search)
         };
         var controller = CreateController(identityLookupService, allowSensitiveInfo: false);
@@ -86,7 +216,7 @@ public class PeopleLookupControllerTests
         var response = await Detail(controller, "Email: person@example.com.");
 
         response.Results.Should().ContainSingle()
-            .Which.FullName.Should().Be("Email Match");
+            .Which.DisplayName.Should().Be("Email Match");
         identityLookupService.Calls.Should().Equal("Lookup:person@example.com");
     }
 
@@ -96,7 +226,7 @@ public class PeopleLookupControllerTests
         var identityLookupService = new FakeIdentityLookupService
         {
             LookupHandler = search => search == "person"
-                ? Found(search, fullName: "Kerb Match")
+                ? Found(search, displayName: "Kerb Match")
                 : NotFound(search)
         };
         var controller = CreateController(identityLookupService, allowSensitiveInfo: false);
@@ -104,7 +234,7 @@ public class PeopleLookupControllerTests
         var response = await Detail(controller, "person@example.com");
 
         response.Results.Should().ContainSingle()
-            .Which.FullName.Should().Be("Kerb Match");
+            .Which.DisplayName.Should().Be("Kerb Match");
         identityLookupService.Calls.Should().Equal(
             "Lookup:person@example.com",
             "Lookup:person");
@@ -116,7 +246,7 @@ public class PeopleLookupControllerTests
         var identityLookupService = new FakeIdentityLookupService
         {
             LookupIdHandler = (field, search) => field == PeopleSearchField.iamId && search == "12345"
-                ? Found(search, fullName: "IAM Match")
+                ? Found(search, displayName: "IAM Match")
                 : NotFound(search)
         };
         var controller = CreateController(identityLookupService, allowSensitiveInfo: true);
@@ -124,7 +254,7 @@ public class PeopleLookupControllerTests
         var response = await Detail(controller, "12345");
 
         response.Results.Should().ContainSingle()
-            .Which.FullName.Should().Be("IAM Match");
+            .Which.DisplayName.Should().Be("IAM Match");
         identityLookupService.Calls.Should().Equal(
             "Lookup:12345",
             "LookupId:iamId:12345");
@@ -136,7 +266,7 @@ public class PeopleLookupControllerTests
         var identityLookupService = new FakeIdentityLookupService
         {
             LookupIdHandler = (field, search) => field == PeopleSearchField.ppsId && search == "12345"
-                ? Found(search, fullName: "PPS Match")
+                ? Found(search, displayName: "PPS Match")
                 : NotFound(search)
         };
         var controller = CreateController(identityLookupService, allowSensitiveInfo: true);
@@ -144,7 +274,7 @@ public class PeopleLookupControllerTests
         var response = await Detail(controller, "12345");
 
         response.Results.Should().ContainSingle()
-            .Which.FullName.Should().Be("PPS Match");
+            .Which.DisplayName.Should().Be("PPS Match");
         identityLookupService.Calls.Should().Equal(
             "Lookup:12345",
             "LookupId:iamId:12345",
@@ -159,7 +289,7 @@ public class PeopleLookupControllerTests
         var identityLookupService = new FakeIdentityLookupService
         {
             LookupIdHandler = (field, search) => field == PeopleSearchField.employeeId && search == "12345"
-                ? Found(search, fullName: "Employee Match")
+                ? Found(search, displayName: "Employee Match")
                 : NotFound(search)
         };
         var controller = CreateController(identityLookupService, allowSensitiveInfo: false);
@@ -176,10 +306,11 @@ public class PeopleLookupControllerTests
     [Fact]
     public async Task Detail_hides_sensitive_fields_when_unauthorized()
     {
+        var lastUpdated = new DateTimeOffset(2026, 8, 18, 14, 35, 0, TimeSpan.FromHours(-7));
         var identityLookupService = new FakeIdentityLookupService
         {
             LookupIdHandler = (field, search) => field == PeopleSearchField.iamId && search == "12345"
-                ? Found(search, fullName: "IAM Match", employeeId: "999")
+                ? Found(search, displayName: "IAM Match", employeeId: "999", lastUpdated: lastUpdated)
                 : NotFound(search)
         };
         var controller = CreateController(identityLookupService, allowSensitiveInfo: false);
@@ -189,6 +320,7 @@ public class PeopleLookupControllerTests
         var result = response.Results.Should().ContainSingle().Subject;
         result.Found.Should().BeTrue();
         result.EmployeeId.Should().BeNull();
+        result.LastUpdated.Should().BeNull();
     }
 
     private static async Task<PeopleLookupResponse> Search(
@@ -226,14 +358,21 @@ public class PeopleLookupControllerTests
         return controller;
     }
 
-    private static PeopleSearchResult Found(string search, string fullName, string? employeeId = null)
+    private static PeopleSearchResult Found(
+        string search,
+        string displayName,
+        string? employeeId = null,
+        string? fullLivedName = null,
+        DateTimeOffset? lastUpdated = null)
     {
         return new PeopleSearchResult
         {
             SearchValue = search,
             Found = true,
-            FullName = fullName,
+            DisplayName = displayName,
             EmployeeId = employeeId,
+            FullLivedName = fullLivedName,
+            LastUpdated = lastUpdated,
         };
     }
 
@@ -246,7 +385,7 @@ public class PeopleLookupControllerTests
         };
     }
 
-    private sealed class FakeIdentityLookupService : IIdentityLookupService
+    private class FakeIdentityLookupService : IIdentityLookupService
     {
         public List<string> Calls { get; } = [];
 
@@ -274,6 +413,17 @@ public class PeopleLookupControllerTests
         public Task<PeopleSearchResult[]> LookupPpsaCode(string search)
         {
             throw new NotSupportedException();
+        }
+    }
+
+    private sealed class FakeBulkIdentityLookupService : FakeIdentityLookupService, IBulkIdentityLookupService
+    {
+        public Task<PeopleSearchResult[]> LookupMany(
+            BulkPeopleSearchField searchField,
+            IReadOnlyCollection<string> searches)
+        {
+            Calls.Add($"LookupMany:{searchField}:{string.Join(',', searches)}");
+            return Task.FromResult(searches.Select(NotFound).ToArray());
         }
     }
 

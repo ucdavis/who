@@ -3,6 +3,7 @@ import { useState } from 'react';
 export interface PeopleSearchResult {
   bannerPidm?: string | null;
   departments?: string | null;
+  displayName?: string | null;
   email?: string | null;
   employeeId?: string | null;
   errorMessage?: string | null;
@@ -10,7 +11,7 @@ export interface PeopleSearchResult {
   expandedAffiliation?: string | null;
   firstName?: string | null;
   found: boolean;
-  fullName?: string | null;
+  fullLivedName?: string | null;
   iamId?: string | null;
   isEmployee: boolean;
   isExternal: boolean;
@@ -20,8 +21,8 @@ export interface PeopleSearchResult {
   isStudent: boolean;
   kerbId?: string | null;
   lastName?: string | null;
+  lastUpdated?: string | null;
   mothraId?: string | null;
-  officialFullName?: string | null;
   otherEmails?: string | null;
   ppsId?: string | null;
   pronouns?: string | null;
@@ -61,13 +62,8 @@ export const detailFields: Array<{
   { group: 'identity', key: 'searchValue', label: 'Search' },
   { group: 'identity', key: 'kerbId', label: 'Kerb Id' },
   { group: 'identity', key: 'iamId', label: 'IAM Id' },
-  { group: 'identity', key: 'fullName', label: 'Full Name' },
-  {
-    group: 'identity',
-    key: 'officialFullName',
-    label: 'Official Full Name',
-    sensitive: true,
-  },
+  { group: 'identity', key: 'displayName', label: 'Display Name' },
+  { group: 'identity', key: 'fullLivedName', label: 'Full Lived Name' },
   { group: 'identity', key: 'pronouns', label: 'Pronouns' },
   { group: 'identity', key: 'firstName', label: 'First Name' },
   { group: 'identity', key: 'lastName', label: 'Last Name' },
@@ -95,6 +91,12 @@ export const detailFields: Array<{
     sensitive: true,
   },
   { group: 'sensitive', key: 'mothraId', label: 'Mothra Id', sensitive: true },
+  {
+    group: 'sensitive',
+    key: 'lastUpdated',
+    label: 'Last Updated',
+    sensitive: true,
+  },
   { group: 'sensitive', key: 'ppsId', label: 'PPS Id', sensitive: true },
   {
     group: 'sensitive',
@@ -161,7 +163,10 @@ export function PeopleDetailsPanel({
     .filter((field) => allowSensitiveInfo || !field.sensitive)
     .map((field) => ({
       ...field,
-      value: formatValue(result[field.key]),
+      value:
+        field.key === 'lastUpdated'
+          ? formatDateTime(result[field.key])
+          : formatValue(result[field.key]),
     }))
     .filter((field) => field.value !== '');
   const activeAffiliations = affiliationFields.filter(
@@ -370,4 +375,21 @@ export function formatValue(value: unknown) {
   }
 
   return String(value);
+}
+
+function formatDateTime(value: unknown) {
+  if (typeof value !== 'string' || value === '') {
+    return '';
+  }
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  return new Intl.DateTimeFormat(undefined, {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  }).format(date);
 }

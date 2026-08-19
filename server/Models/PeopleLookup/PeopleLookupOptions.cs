@@ -4,6 +4,8 @@ public class PeopleLookupOptions
 {
     public const string SectionName = "PeopleLookup";
 
+    public int RosettaBatchSize { get; set; } = 50;
+
     public string IamKey { get; set; } = string.Empty;
 
     public string SensitiveInfoUsers { get; set; } = string.Empty;

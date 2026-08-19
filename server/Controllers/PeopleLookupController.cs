@@ -13,6 +13,7 @@ public partial class PeopleLookupController : ApiControllerBase
     private const string SearchTypeIamId = "iamId";
     private const string SearchTypeKerb = "kerb";
     private const string SearchTypeLastName = "lastName";
+    private const string SearchTypeMothraId = "mothraId";
     private const string SearchTypePpsaDeptCode = "ppsaDeptCode";
     private const string SearchTypePpsId = "ppsId";
     private const string SearchTypeStudentId = "studentId";
@@ -69,25 +70,28 @@ public partial class PeopleLookupController : ApiControllerBase
         switch (searchType)
         {
             case SearchTypeEmail:
-                await AddLookupMatches(
+                await AddProviderLookupMatches(
                     searchText,
                     EmailRegex(),
+                    BulkPeopleSearchField.Email,
                     value => _identityLookupService.Lookup(value),
                     allowSensitiveInfo,
                     response.Results);
                 break;
             case SearchTypeKerb:
-                await AddLookupMatches(
+                await AddProviderLookupMatches(
                     searchText,
                     KerbRegex(),
+                    BulkPeopleSearchField.LoginId,
                     value => _identityLookupService.Lookup(value),
                     allowSensitiveInfo,
                     response.Results);
                 break;
             case SearchTypeIamId:
-                await AddLookupMatches(
+                await AddProviderLookupMatches(
                     searchText,
                     NumericIdRegex(),
+                    BulkPeopleSearchField.IamId,
                     value => _identityLookupService.LookupId(PeopleSearchField.iamId, value),
                     allowSensitiveInfo,
                     response.Results);
@@ -109,17 +113,19 @@ public partial class PeopleLookupController : ApiControllerBase
                     response.Results);
                 break;
             case SearchTypeEmployeeId:
-                await AddLookupMatches(
+                await AddProviderLookupMatches(
                     searchText,
                     NumericIdRegex(),
+                    BulkPeopleSearchField.EmployeeId,
                     value => _identityLookupService.LookupId(PeopleSearchField.employeeId, value),
                     allowSensitiveInfo,
                     response.Results);
                 break;
             case SearchTypeStudentId:
-                await AddLookupMatches(
+                await AddProviderLookupMatches(
                     searchText,
                     NumericIdRegex(),
+                    BulkPeopleSearchField.StudentId,
                     value => _identityLookupService.LookupId(PeopleSearchField.studentId, value),
                     allowSensitiveInfo,
                     response.Results);
@@ -129,6 +135,15 @@ public partial class PeopleLookupController : ApiControllerBase
                     searchText,
                     NumericIdRegex(),
                     value => _identityLookupService.LookupId(PeopleSearchField.ppsId, value),
+                    allowSensitiveInfo,
+                    response.Results);
+                break;
+            case SearchTypeMothraId:
+                await AddProviderLookupMatches(
+                    searchText,
+                    NumericIdRegex(),
+                    BulkPeopleSearchField.MothraId,
+                    value => _identityLookupService.LookupId(PeopleSearchField.mothraId, value),
                     allowSensitiveInfo,
                     response.Results);
                 break;
@@ -255,6 +270,52 @@ public partial class PeopleLookupController : ApiControllerBase
         AddResults(await Task.WhenAll(lookupTasks), allowSensitiveInfo, results);
     }
 
+    private async Task AddProviderLookupMatches(
+        string? rawSearch,
+        Regex regex,
+        BulkPeopleSearchField searchField,
+        Func<string, Task<PeopleSearchResult>> individualLookup,
+        bool allowSensitiveInfo,
+        IList<PeopleSearchResult> results)
+    {
+        if (_identityLookupService is IBulkIdentityLookupService bulkIdentityLookupService)
+        {
+            await AddBulkLookupMatches(
+                rawSearch,
+                regex,
+                values => bulkIdentityLookupService.LookupMany(searchField, values),
+                allowSensitiveInfo,
+                results);
+            return;
+        }
+
+        await AddLookupMatches(
+            rawSearch,
+            regex,
+            individualLookup,
+            allowSensitiveInfo,
+            results);
+    }
+
+    private static async Task AddBulkLookupMatches(
+        string? rawSearch,
+        Regex regex,
+        Func<IReadOnlyCollection<string>, Task<PeopleSearchResult[]>> lookup,
+        bool allowSensitiveInfo,
+        IList<PeopleSearchResult> results)
+    {
+        if (string.IsNullOrWhiteSpace(rawSearch))
+        {
+            return;
+        }
+
+        var searchValues = regex.Matches(rawSearch)
+            .Select(match => match.Value)
+            .ToArray();
+
+        AddResults(await lookup(searchValues), allowSensitiveInfo, results);
+    }
+
     private static async Task AddLookupMatches(
         string? rawSearch,
         Regex regex,
@@ -328,6 +389,11 @@ public partial class PeopleLookupController : ApiControllerBase
             return SearchTypeLastName;
         }
 
+        if (string.Equals(normalizedSearchType, SearchTypeMothraId, StringComparison.OrdinalIgnoreCase))
+        {
+            return SearchTypeMothraId;
+        }
+
         if (string.Equals(normalizedSearchType, SearchTypePpsaDeptCode, StringComparison.OrdinalIgnoreCase))
         {
             return SearchTypePpsaDeptCode;
@@ -349,6 +415,7 @@ public partial class PeopleLookupController : ApiControllerBase
     private static bool IsSensitiveSearchType(string searchType)
     {
         return string.Equals(searchType, SearchTypeEmployeeId, StringComparison.OrdinalIgnoreCase)
+               || string.Equals(searchType, SearchTypeMothraId, StringComparison.OrdinalIgnoreCase)
                || string.Equals(searchType, SearchTypePpsId, StringComparison.OrdinalIgnoreCase)
                || string.Equals(searchType, SearchTypeStudentId, StringComparison.OrdinalIgnoreCase);
     }

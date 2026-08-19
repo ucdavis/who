@@ -1,7 +1,18 @@
 import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import packageJson from '../../package.json' with { type: 'json' };
+import { fetchJson } from '@/lib/api.ts';
+
+type AppInfo = {
+  provider: 'Rosetta' | 'IAM';
+};
 
 export function AppFooter() {
+  const { data: appInfo } = useQuery({
+    queryFn: ({ signal }) => fetchJson<AppInfo>('/api/app-info', {}, signal),
+    queryKey: ['app-info'],
+    staleTime: Infinity,
+  });
   const [isDark, setIsDark] = useState(
     () => document.documentElement.dataset.theme === 'who-dark'
   );
@@ -30,6 +41,7 @@ export function AppFooter() {
       <div className="flex flex-1 justify-center">
         <div className="relative flex flex-col">
           <a
+            className="self-center"
             href="https://ucdavis.edu"
             rel="noopener noreferrer"
             target="_blank"
@@ -57,6 +69,13 @@ export function AppFooter() {
             >
               CRU
             </a>
+            <span className="mx-2 text-base-content/40">|</span>
+            <span>powered by</span>
+            {appInfo && (
+              <span className="badge badge-primary badge-soft badge-sm ms-1">
+                {appInfo.provider}
+              </span>
+            )}
             <span className="mx-2 text-base-content/40">|</span>
             <a
               className="underline"

@@ -6,9 +6,9 @@ public class PeopleSearchResult
 
     public bool Found { get; set; }
 
-    public string? FullName { get; set; }
+    public string? DisplayName { get; set; }
 
-    public string? OfficialFullName { get; set; }
+    public string? FullLivedName { get; set; }
 
     public string? FirstName { get; set; }
 
@@ -46,6 +46,8 @@ public class PeopleSearchResult
 
     public string? MothraId { get; set; }
 
+    public DateTimeOffset? LastUpdated { get; set; }
+
     public string? Title { get; set; }
 
     public string? ReportsToIamId { get; set; }
@@ -81,7 +83,7 @@ public class PeopleSearchResult
         ExceptionMessage = null;
         ReportsToIamId = null;
         MothraId = null;
-        OfficialFullName = null;
+        LastUpdated = null;
         OtherEmails = null;
     }
 }

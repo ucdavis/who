@@ -47,6 +47,25 @@ param authCallbackPath string
 @description('IAM people lookup API key.')
 param peopleLookupIamKey string
 
+@description('Whether Rosetta should provide people lookup data.')
+param useRosettaLookup string
+
+@description('Base URL used by the Rosetta client.')
+param rosettaClientBaseUrl string
+
+@description('OAuth client ID used by the Rosetta client.')
+param rosettaClientId string
+
+@secure()
+@description('OAuth client secret used by the Rosetta client.')
+param rosettaClientSecret string
+
+@description('OAuth scope used by the Rosetta client.')
+param rosettaClientScope string
+
+@description('OAuth token URL used by the Rosetta client.')
+param rosettaClientTokenUrl string
+
 @description('Optional OTLP exporter endpoint.')
 param otelExporterOtlpEndpoint string
 
@@ -121,6 +140,48 @@ var otlpEndpointAppSettings = empty(otelExporterOtlpEndpoint) ? [] : [
   }
 ]
 
+var rosettaAppSettings = empty(useRosettaLookup) ? [] : [
+  {
+    name: 'UseRosettaLookup'
+    value: useRosettaLookup
+  }
+]
+
+var rosettaClientBaseUrlAppSettings = empty(rosettaClientBaseUrl) ? [] : [
+  {
+    name: 'RosettaClient__BaseUrl'
+    value: rosettaClientBaseUrl
+  }
+]
+
+var rosettaClientIdAppSettings = empty(rosettaClientId) ? [] : [
+  {
+    name: 'RosettaClient__ClientId'
+    value: rosettaClientId
+  }
+]
+
+var rosettaClientSecretAppSettings = empty(rosettaClientSecret) ? [] : [
+  {
+    name: 'RosettaClient__ClientSecret'
+    value: rosettaClientSecret
+  }
+]
+
+var rosettaClientScopeAppSettings = empty(rosettaClientScope) ? [] : [
+  {
+    name: 'RosettaClient__Scope'
+    value: rosettaClientScope
+  }
+]
+
+var rosettaClientTokenUrlAppSettings = empty(rosettaClientTokenUrl) ? [] : [
+  {
+    name: 'RosettaClient__TokenUrl'
+    value: rosettaClientTokenUrl
+  }
+]
+
 var otlpHeadersAppSettings = empty(otelExporterOtlpHeaders) ? [] : [
   {
     name: 'OTEL_EXPORTER_OTLP_HEADERS'
@@ -171,7 +232,7 @@ resource webApp 'Microsoft.Web/sites@2023-12-01' = {
     httpsOnly: true
     siteConfig: {
       alwaysOn: true
-      appSettings: concat(baseAppSettings, otlpEndpointAppSettings, otlpHeadersAppSettings, otelServiceNameAppSettings, otelResourceAttributesAppSettings)
+      appSettings: concat(baseAppSettings, rosettaAppSettings, rosettaClientBaseUrlAppSettings, rosettaClientIdAppSettings, rosettaClientSecretAppSettings, rosettaClientScopeAppSettings, rosettaClientTokenUrlAppSettings, otlpEndpointAppSettings, otlpHeadersAppSettings, otelServiceNameAppSettings, otelResourceAttributesAppSettings)
       ftpsState: 'FtpsOnly'
       healthCheckPath: '/health'
       http20Enabled: true

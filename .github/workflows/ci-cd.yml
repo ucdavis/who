@@ -83,6 +83,7 @@ jobs:
     secrets:
       OTEL_EXPORTER_OTLP_HEADERS: ${{ secrets.OTEL_EXPORTER_OTLP_HEADERS }}
       PEOPLELOOKUP_IAMKEY: ${{ secrets.PEOPLELOOKUP_IAMKEY }}
+      ROSETTACLIENT__CLIENTSECRET: ${{ secrets.ROSETTACLIENT__CLIENTSECRET }}
 
   deploy_prod:
     name: Deploy prod
@@ -98,6 +99,7 @@ jobs:
     secrets:
       OTEL_EXPORTER_OTLP_HEADERS: ${{ secrets.OTEL_EXPORTER_OTLP_HEADERS }}
       PEOPLELOOKUP_IAMKEY: ${{ secrets.PEOPLELOOKUP_IAMKEY }}
+      ROSETTACLIENT__CLIENTSECRET: ${{ secrets.ROSETTACLIENT__CLIENTSECRET }}
 
   deploy_manual:
     name: Deploy ${{ inputs.environment }}
@@ -112,3 +114,4 @@ jobs:
     secrets:
       OTEL_EXPORTER_OTLP_HEADERS: ${{ secrets.OTEL_EXPORTER_OTLP_HEADERS }}
       PEOPLELOOKUP_IAMKEY: ${{ secrets.PEOPLELOOKUP_IAMKEY }}
+      ROSETTACLIENT__CLIENTSECRET: ${{ secrets.ROSETTACLIENT__CLIENTSECRET }}

@@ -203,7 +203,8 @@ try
 
     app.MapGet("/api/app-info", () => new
         {
-            Provider = useRosettaLookup ? "Rosetta" : "IAM"
+            Provider = useRosettaLookup ? "Rosetta" : "IAM",
+            IsTest = app.Environment.IsEnvironment("test")
         })
         .AllowAnonymous();
 

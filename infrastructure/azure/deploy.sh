@@ -27,6 +27,8 @@ Existing infrastructure deployments:
 
 Optional app settings use the same names as the GitHub Environment variables:
   AUTH_CLIENT_ID, AUTH_TENANT_ID, AUTH_DOMAIN, AUTH_INSTANCE, AUTH_CALLBACK_PATH,
+  USEROSETTALOOKUP, ROSETTACLIENT__BASEURL, ROSETTACLIENT__CLIENTID,
+  ROSETTACLIENT__CLIENTSECRET, ROSETTACLIENT__SCOPE, ROSETTACLIENT__TOKENURL,
   OTEL_EXPORTER_OTLP_ENDPOINT, OTEL_EXPORTER_OTLP_PROTOCOL, OTEL_EXPORTER_OTLP_HEADERS,
   OTEL_SERVICE_NAME, OTEL_RESOURCE_ATTRIBUTES
 USAGE
@@ -190,6 +192,12 @@ if is_true "$DEPLOY_INFRA"; then
   add_param "authInstance" "${AUTH_INSTANCE:-}"
   add_param "authCallbackPath" "${AUTH_CALLBACK_PATH:-}"
   add_param "peopleLookupIamKey" "${PEOPLELOOKUP_IAMKEY:-}"
+  add_param "useRosettaLookup" "${USEROSETTALOOKUP:-}"
+  add_param "rosettaClientBaseUrl" "${ROSETTACLIENT__BASEURL:-}"
+  add_param "rosettaClientId" "${ROSETTACLIENT__CLIENTID:-}"
+  add_param "rosettaClientSecret" "${ROSETTACLIENT__CLIENTSECRET:-}"
+  add_param "rosettaClientScope" "${ROSETTACLIENT__SCOPE:-}"
+  add_param "rosettaClientTokenUrl" "${ROSETTACLIENT__TOKENURL:-}"
   add_param "otelExporterOtlpEndpoint" "${OTEL_EXPORTER_OTLP_ENDPOINT:-}"
   add_param "otelExporterOtlpProtocol" "${OTEL_EXPORTER_OTLP_PROTOCOL:-}"
   add_param "otelExporterOtlpHeaders" "${OTEL_EXPORTER_OTLP_HEADERS:-}"
@@ -238,6 +246,12 @@ add_setting "Auth__Domain" "${AUTH_DOMAIN:-}"
 add_setting "Auth__Instance" "${AUTH_INSTANCE:-}"
 add_setting "Auth__CallbackPath" "${AUTH_CALLBACK_PATH:-}"
 add_setting "PeopleLookup__IamKey" "${PEOPLELOOKUP_IAMKEY:-}"
+add_setting "UseRosettaLookup" "${USEROSETTALOOKUP:-}"
+add_setting "RosettaClient__BaseUrl" "${ROSETTACLIENT__BASEURL:-}"
+add_setting "RosettaClient__ClientId" "${ROSETTACLIENT__CLIENTID:-}"
+add_setting "RosettaClient__ClientSecret" "${ROSETTACLIENT__CLIENTSECRET:-}"
+add_setting "RosettaClient__Scope" "${ROSETTACLIENT__SCOPE:-}"
+add_setting "RosettaClient__TokenUrl" "${ROSETTACLIENT__TOKENURL:-}"
 add_setting "OTEL_EXPORTER_OTLP_ENDPOINT" "${OTEL_EXPORTER_OTLP_ENDPOINT:-}"
 add_setting "OTEL_EXPORTER_OTLP_PROTOCOL" "${OTEL_EXPORTER_OTLP_PROTOCOL:-}"
 add_setting "OTEL_EXPORTER_OTLP_HEADERS" "${OTEL_EXPORTER_OTLP_HEADERS:-}"

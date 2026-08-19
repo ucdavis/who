@@ -148,12 +148,12 @@ public class RosettaIdentityLookupService : IIdentityLookupService, IBulkIdentit
         PeopleSearchField searchField,
         IReadOnlyCollection<string> searches)
     {
-        if (searchField != PeopleSearchField.iamId)
+        if (searchField != PeopleSearchField.iamId && searchField != PeopleSearchField.employeeId)
         {
             throw new ArgumentOutOfRangeException(
                 nameof(searchField),
                 searchField,
-                "Bulk Rosetta lookup currently supports IAM IDs only.");
+                "Bulk Rosetta lookup currently supports IAM IDs and employee IDs only.");
         }
 
         var results = new List<PeopleSearchResult>(searches.Count);
@@ -162,26 +162,20 @@ public class RosettaIdentityLookupService : IIdentityLookupService, IBulkIdentit
         {
             try
             {
-                var people = await _client.Api.PeoplePOSTAsync(new PeoplePostRequest
-                {
-                    Iamids = batch,
-                    Count = false,
-                    Limit = batch.Length,
-                    Offset = 0
-                });
-                var peopleByIamId = people
+                var people = await _client.Api.PeoplePOSTAsync(CreatePostRequest(searchField, batch));
+                var peopleBySearchValue = people
                     .Select(person => new
                     {
-                        IamId = FirstValue(person.Iam_id, person.Id?.Iam_id),
+                        SearchValue = GetSearchValue(person, searchField),
                         Person = person
                     })
-                    .Where(item => item.IamId != null)
-                    .GroupBy(item => item.IamId!, StringComparer.Ordinal)
+                    .Where(item => item.SearchValue != null)
+                    .GroupBy(item => item.SearchValue!, StringComparer.Ordinal)
                     .ToDictionary(group => group.Key, group => group.First().Person, StringComparer.Ordinal);
 
                 foreach (var search in batch)
                 {
-                    results.Add(peopleByIamId.TryGetValue(search, out var person)
+                    results.Add(peopleBySearchValue.TryGetValue(search, out var person)
                         ? MapPerson(person, search)
                         : new PeopleSearchResult { SearchValue = search });
                 }
@@ -201,6 +195,41 @@ public class RosettaIdentityLookupService : IIdentityLookupService, IBulkIdentit
         }
 
         return results.ToArray();
+    }
+
+    private static PeoplePostRequest CreatePostRequest(PeopleSearchField searchField, string[] batch)
+    {
+        var request = new PeoplePostRequest
+        {
+            Count = false,
+            Limit = batch.Length,
+            Offset = 0
+        };
+
+        if (searchField == PeopleSearchField.iamId)
+        {
+            request.Iamids = batch;
+        }
+        else
+        {
+            request.Employeeids = batch;
+        }
+
+        return request;
+    }
+
+    private static string? GetSearchValue(Person person, PeopleSearchField searchField)
+    {
+        if (searchField == PeopleSearchField.iamId)
+        {
+            return FirstValue(person.Iam_id, person.Id?.Iam_id);
+        }
+
+        return FirstValue(
+            person.Id?.Employee_id,
+            FirstValue((person.Employee_association ?? [])
+                .Select(association => association.Employee_id)
+                .ToArray()));
     }
 
     private static PeopleSearchResult[] MapPeople(ICollection<Person> people, string search)

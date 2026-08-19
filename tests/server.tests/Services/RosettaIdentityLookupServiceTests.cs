@@ -31,12 +31,39 @@ public class RosettaIdentityLookupServiceTests
         var results = await service.LookupIds(PeopleSearchField.iamId, iamIds);
 
         handler.Requests.Should().HaveCount(3);
-        handler.Requests[0].IamIds.Should().Equal("1000000001", "1000000002");
-        handler.Requests[1].IamIds.Should().Equal("1000000003", "1000000004");
-        handler.Requests[2].IamIds.Should().Equal("1000000005");
+        handler.Requests.Should().OnlyContain(request => request.FilterName == "iamids");
+        handler.Requests[0].Ids.Should().Equal("1000000001", "1000000002");
+        handler.Requests[1].Ids.Should().Equal("1000000003", "1000000004");
+        handler.Requests[2].Ids.Should().Equal("1000000005");
         handler.Requests.Select(request => request.Limit).Should().Equal(2, 2, 1);
         handler.Requests.Should().OnlyContain(request => request.Count == false && request.Offset == 0);
         results.Select(result => result.SearchValue).Should().Equal(iamIds);
+        results.Should().OnlyContain(result => result.Found);
+    }
+
+    [Fact]
+    public async Task LookupIds_posts_employee_ids_and_maps_results_to_each_search_value()
+    {
+        var handler = new PeoplePostHandler();
+        using var restClient = new HttpClient(handler);
+        using var graphQlClient = new HttpClient(new PeoplePostHandler())
+        {
+            BaseAddress = new Uri("https://example.test/api/v1/graphql")
+        };
+        using var rosettaClient = new RosettaClient(restClient, graphQlClient, CreateRosettaOptions());
+        var service = new RosettaIdentityLookupService(
+            rosettaClient,
+            Options.Create(new PeopleLookupOptions { RosettaBatchSize = 2 }));
+        string[] employeeIds = ["100000001", "100000002", "100000003"];
+
+        var results = await service.LookupIds(PeopleSearchField.employeeId, employeeIds);
+
+        handler.Requests.Should().HaveCount(2);
+        handler.Requests.Should().OnlyContain(request => request.FilterName == "employeeids");
+        handler.Requests[0].Ids.Should().Equal("100000001", "100000002");
+        handler.Requests[1].Ids.Should().Equal("100000003");
+        results.Select(result => result.SearchValue).Should().Equal(employeeIds);
+        results.Select(result => result.EmployeeId).Should().Equal(employeeIds);
         results.Should().OnlyContain(result => result.Found);
     }
 
@@ -72,22 +99,38 @@ public class RosettaIdentityLookupServiceTests
             var body = await request.Content!.ReadAsStringAsync(cancellationToken);
             using var document = JsonDocument.Parse(body);
             var root = document.RootElement;
-            var iamIds = root.GetProperty("iamids")
+            var filterName = root.TryGetProperty("iamids", out var idsElement)
+                ? "iamids"
+                : "employeeids";
+            if (filterName == "employeeids")
+            {
+                idsElement = root.GetProperty(filterName);
+            }
+
+            var ids = idsElement
                 .EnumerateArray()
                 .Select(value => value.GetString()!)
                 .ToArray();
 
             Requests.Add(new PeoplePostRequestRecord(
-                iamIds,
+                filterName,
+                ids,
                 root.GetProperty("limit").GetInt32(),
                 root.GetProperty("offset").GetInt32(),
                 root.GetProperty("count").GetBoolean()));
 
-            var responseBody = JsonSerializer.Serialize(iamIds.Reverse().Select(iamId => new
-            {
-                iam_id = iamId,
-                displayname = $"Person {iamId}"
-            }));
+            var responseBody = filterName == "iamids"
+                ? JsonSerializer.Serialize(ids.Reverse().Select(id => new
+                {
+                    iam_id = id,
+                    displayname = $"Person {id}"
+                }))
+                : JsonSerializer.Serialize(ids.Reverse().Select((id, index) => new
+                {
+                    iam_id = $"900000000{index}",
+                    displayname = $"Employee {id}",
+                    id = new { employee_id = id }
+                }));
 
             return new HttpResponseMessage(HttpStatusCode.OK)
             {
@@ -97,7 +140,8 @@ public class RosettaIdentityLookupServiceTests
     }
 
     private sealed record PeoplePostRequestRecord(
-        string[] IamIds,
+        string FilterName,
+        string[] Ids,
         int Limit,
         int Offset,
         bool Count);

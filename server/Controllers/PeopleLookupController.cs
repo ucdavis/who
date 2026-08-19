@@ -86,24 +86,11 @@ public partial class PeopleLookupController : ApiControllerBase
                     response.Results);
                 break;
             case SearchTypeIamId:
-                if (_identityLookupService is IBulkIdentityLookupService bulkIdentityLookupService)
-                {
-                    await AddBulkLookupMatches(
-                        searchText,
-                        NumericIdRegex(),
-                        values => bulkIdentityLookupService.LookupIds(PeopleSearchField.iamId, values),
-                        allowSensitiveInfo,
-                        response.Results);
-                }
-                else
-                {
-                    await AddLookupMatches(
-                        searchText,
-                        NumericIdRegex(),
-                        value => _identityLookupService.LookupId(PeopleSearchField.iamId, value),
-                        allowSensitiveInfo,
-                        response.Results);
-                }
+                await AddIdLookupMatches(
+                    searchText,
+                    PeopleSearchField.iamId,
+                    allowSensitiveInfo,
+                    response.Results);
                 break;
             case SearchTypeLastName:
                 await AddLookupMatches(
@@ -122,10 +109,9 @@ public partial class PeopleLookupController : ApiControllerBase
                     response.Results);
                 break;
             case SearchTypeEmployeeId:
-                await AddLookupMatches(
+                await AddIdLookupMatches(
                     searchText,
-                    NumericIdRegex(),
-                    value => _identityLookupService.LookupId(PeopleSearchField.employeeId, value),
+                    PeopleSearchField.employeeId,
                     allowSensitiveInfo,
                     response.Results);
                 break;
@@ -274,6 +260,31 @@ public partial class PeopleLookupController : ApiControllerBase
             .ToArray();
 
         AddResults(await Task.WhenAll(lookupTasks), allowSensitiveInfo, results);
+    }
+
+    private async Task AddIdLookupMatches(
+        string? rawSearch,
+        PeopleSearchField searchField,
+        bool allowSensitiveInfo,
+        IList<PeopleSearchResult> results)
+    {
+        if (_identityLookupService is IBulkIdentityLookupService bulkIdentityLookupService)
+        {
+            await AddBulkLookupMatches(
+                rawSearch,
+                NumericIdRegex(),
+                values => bulkIdentityLookupService.LookupIds(searchField, values),
+                allowSensitiveInfo,
+                results);
+            return;
+        }
+
+        await AddLookupMatches(
+            rawSearch,
+            NumericIdRegex(),
+            value => _identityLookupService.LookupId(searchField, value),
+            allowSensitiveInfo,
+            results);
     }
 
     private static async Task AddBulkLookupMatches(

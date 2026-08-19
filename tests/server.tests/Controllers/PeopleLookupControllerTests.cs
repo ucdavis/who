@@ -73,6 +73,22 @@ public class PeopleLookupControllerTests
     }
 
     [Fact]
+    public async Task Search_uses_bulk_lookup_for_employee_ids_when_supported()
+    {
+        var identityLookupService = new FakeBulkIdentityLookupService();
+        var controller = CreateController(identityLookupService, allowSensitiveInfo: true);
+
+        var response = await Search(controller, new BulkPeopleLookupRequest
+        {
+            SearchText = "123456789, 987654321",
+            SearchType = "employeeId",
+        });
+
+        response.Results.Select(result => result.SearchValue).Should().Equal("123456789", "987654321");
+        identityLookupService.Calls.Should().Equal("LookupIds:employeeId:123456789,987654321");
+    }
+
+    [Fact]
     public async Task Search_uses_individual_lookups_for_iam_ids_when_bulk_is_not_supported()
     {
         var identityLookupService = new FakeIdentityLookupService();

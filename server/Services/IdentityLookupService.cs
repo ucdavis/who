@@ -15,6 +15,11 @@ public interface IIdentityLookupService
     Task<PeopleSearchResult[]> LookupPpsaCode(string search);
 }
 
+public interface IBulkIdentityLookupService
+{
+    Task<PeopleSearchResult[]> LookupIds(PeopleSearchField searchField, IReadOnlyCollection<string> searches);
+}
+
 public class IdentityLookupService : IIdentityLookupService
 {
     private readonly IetClient _clientws;

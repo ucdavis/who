@@ -1,19 +1,30 @@
 using Ietws;
+using Microsoft.Extensions.Options;
 using Server.Models.PeopleLookup;
 using UCD.Rosetta.Client.Core;
 using UCD.Rosetta.Client.Generated;
 
 namespace Server.Services;
 
-public class RosettaIdentityLookupService : IIdentityLookupService
+public class RosettaIdentityLookupService : IIdentityLookupService, IBulkIdentityLookupService
 {
     private const string MaskedValue = "*******";
 
     private readonly RosettaClient _client;
+    private readonly int _batchSize;
 
-    public RosettaIdentityLookupService(RosettaClient client)
+    public RosettaIdentityLookupService(RosettaClient client, IOptions<PeopleLookupOptions> options)
     {
         _client = client;
+        _batchSize = options.Value.RosettaBatchSize;
+
+        if (_batchSize <= 0)
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(options),
+                _batchSize,
+                $"{PeopleLookupOptions.SectionName}:RosettaBatchSize must be greater than zero.");
+        }
     }
 
     public async Task<PeopleSearchResult> Lookup(string search)
@@ -131,6 +142,65 @@ public class RosettaIdentityLookupService : IIdentityLookupService
             searchResult.ExceptionMessage = $"(LookupId) Error: {e.Message} Inner: {e.InnerException?.Message} {e}";
             return searchResult;
         }
+    }
+
+    public async Task<PeopleSearchResult[]> LookupIds(
+        PeopleSearchField searchField,
+        IReadOnlyCollection<string> searches)
+    {
+        if (searchField != PeopleSearchField.iamId)
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(searchField),
+                searchField,
+                "Bulk Rosetta lookup currently supports IAM IDs only.");
+        }
+
+        var results = new List<PeopleSearchResult>(searches.Count);
+
+        foreach (var batch in searches.Chunk(_batchSize))
+        {
+            try
+            {
+                var people = await _client.Api.PeoplePOSTAsync(new PeoplePostRequest
+                {
+                    Iamids = batch,
+                    Count = false,
+                    Limit = batch.Length,
+                    Offset = 0
+                });
+                var peopleByIamId = people
+                    .Select(person => new
+                    {
+                        IamId = FirstValue(person.Iam_id, person.Id?.Iam_id),
+                        Person = person
+                    })
+                    .Where(item => item.IamId != null)
+                    .GroupBy(item => item.IamId!, StringComparer.Ordinal)
+                    .ToDictionary(group => group.Key, group => group.First().Person, StringComparer.Ordinal);
+
+                foreach (var search in batch)
+                {
+                    results.Add(peopleByIamId.TryGetValue(search, out var person)
+                        ? MapPerson(person, search)
+                        : new PeopleSearchResult { SearchValue = search });
+                }
+            }
+            catch (Exception e)
+            {
+                foreach (var search in batch)
+                {
+                    results.Add(new PeopleSearchResult
+                    {
+                        SearchValue = search,
+                        ErrorMessage = "Error Occurred",
+                        ExceptionMessage = $"(LookupIds) Error: {e.Message} Inner: {e.InnerException?.Message} {e}"
+                    });
+                }
+            }
+        }
+
+        return results.ToArray();
     }
 
     private static PeopleSearchResult[] MapPeople(ICollection<Person> people, string search)

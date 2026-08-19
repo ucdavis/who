@@ -86,12 +86,24 @@ public partial class PeopleLookupController : ApiControllerBase
                     response.Results);
                 break;
             case SearchTypeIamId:
-                await AddLookupMatches(
-                    searchText,
-                    NumericIdRegex(),
-                    value => _identityLookupService.LookupId(PeopleSearchField.iamId, value),
-                    allowSensitiveInfo,
-                    response.Results);
+                if (_identityLookupService is IBulkIdentityLookupService bulkIdentityLookupService)
+                {
+                    await AddBulkLookupMatches(
+                        searchText,
+                        NumericIdRegex(),
+                        values => bulkIdentityLookupService.LookupIds(PeopleSearchField.iamId, values),
+                        allowSensitiveInfo,
+                        response.Results);
+                }
+                else
+                {
+                    await AddLookupMatches(
+                        searchText,
+                        NumericIdRegex(),
+                        value => _identityLookupService.LookupId(PeopleSearchField.iamId, value),
+                        allowSensitiveInfo,
+                        response.Results);
+                }
                 break;
             case SearchTypeLastName:
                 await AddLookupMatches(
@@ -262,6 +274,25 @@ public partial class PeopleLookupController : ApiControllerBase
             .ToArray();
 
         AddResults(await Task.WhenAll(lookupTasks), allowSensitiveInfo, results);
+    }
+
+    private static async Task AddBulkLookupMatches(
+        string? rawSearch,
+        Regex regex,
+        Func<IReadOnlyCollection<string>, Task<PeopleSearchResult[]>> lookup,
+        bool allowSensitiveInfo,
+        IList<PeopleSearchResult> results)
+    {
+        if (string.IsNullOrWhiteSpace(rawSearch))
+        {
+            return;
+        }
+
+        var searchValues = regex.Matches(rawSearch)
+            .Select(match => match.Value)
+            .ToArray();
+
+        AddResults(await lookup(searchValues), allowSensitiveInfo, results);
     }
 
     private static async Task AddLookupMatches(

@@ -57,6 +57,39 @@ public class PeopleLookupControllerTests
     }
 
     [Fact]
+    public async Task Search_uses_bulk_lookup_for_iam_ids_when_supported()
+    {
+        var identityLookupService = new FakeBulkIdentityLookupService();
+        var controller = CreateController(identityLookupService, allowSensitiveInfo: true);
+
+        var response = await Search(controller, new BulkPeopleLookupRequest
+        {
+            SearchText = "1234567890, 0987654321",
+            SearchType = "iamId",
+        });
+
+        response.Results.Select(result => result.SearchValue).Should().Equal("1234567890", "0987654321");
+        identityLookupService.Calls.Should().Equal("LookupIds:iamId:1234567890,0987654321");
+    }
+
+    [Fact]
+    public async Task Search_uses_individual_lookups_for_iam_ids_when_bulk_is_not_supported()
+    {
+        var identityLookupService = new FakeIdentityLookupService();
+        var controller = CreateController(identityLookupService, allowSensitiveInfo: true);
+
+        await Search(controller, new BulkPeopleLookupRequest
+        {
+            SearchText = "1234567890, 0987654321",
+            SearchType = "iamId",
+        });
+
+        identityLookupService.Calls.Should().Equal(
+            "LookupId:iamId:1234567890",
+            "LookupId:iamId:0987654321");
+    }
+
+    [Fact]
     public async Task Search_uses_mothra_id_search_type_when_authorized()
     {
         var identityLookupService = new FakeIdentityLookupService
@@ -278,7 +311,7 @@ public class PeopleLookupControllerTests
         };
     }
 
-    private sealed class FakeIdentityLookupService : IIdentityLookupService
+    private class FakeIdentityLookupService : IIdentityLookupService
     {
         public List<string> Calls { get; } = [];
 
@@ -306,6 +339,17 @@ public class PeopleLookupControllerTests
         public Task<PeopleSearchResult[]> LookupPpsaCode(string search)
         {
             throw new NotSupportedException();
+        }
+    }
+
+    private sealed class FakeBulkIdentityLookupService : FakeIdentityLookupService, IBulkIdentityLookupService
+    {
+        public Task<PeopleSearchResult[]> LookupIds(
+            PeopleSearchField searchField,
+            IReadOnlyCollection<string> searches)
+        {
+            Calls.Add($"LookupIds:{searchField}:{string.Join(',', searches)}");
+            return Task.FromResult(searches.Select(NotFound).ToArray());
         }
     }
 

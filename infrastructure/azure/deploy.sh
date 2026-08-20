@@ -154,7 +154,7 @@ if is_true "$BUILD_APP"; then
   dotnet build "$repo_root/app.sln" --configuration Release --no-restore
 
   if is_true "$RUN_TESTS"; then
-    dotnet test "$repo_root/app.sln" --configuration Release --no-build
+    dotnet test --solution "$repo_root/app.sln" --configuration Release --no-build
   fi
 
   rm -rf "$PUBLISH_WEB_DIR" "$PACKAGE_PATH"

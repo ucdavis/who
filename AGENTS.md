@@ -207,7 +207,7 @@ Controllers    Static Files + SPA fallback (wwwroot)
 - `cd client && npm run lint` - Run ESLint
 - `cd client && npm test` - Run client tests once
 - `cd client && npm run test:watch` - Watch client tests
-- `dotnet test` - Execute the .NET test project(s)
+- `dotnet test --solution app.sln` - Execute the .NET test project(s)
 
 ### Testing
 

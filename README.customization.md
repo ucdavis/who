@@ -102,7 +102,7 @@ PEOPLELOOKUP_IAMKEY="<iamws-api-key>" DEPLOY_INFRA=false WEB_APP_NAME="<app-serv
 - `cd client && npm run build` succeeds.
 - `cd client && npm test -- --run` succeeds.
 - `dotnet build app.sln` succeeds.
-- `dotnet test app.sln` succeeds.
+- `dotnet test --solution app.sln` succeeds.
 - `az bicep build --file infrastructure/azure/main.bicep` succeeds when Azure CLI/Bicep is available.
 - Sign-in works locally and in hosted environments.
 - IAM lookup works with the configured key.

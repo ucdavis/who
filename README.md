@@ -161,8 +161,8 @@ The VS Code flow intentionally uses the `http-cli` launch profile instead of the
 
 ### Server tests
 
-- Run `dotnet test` from the repository root to execute the .NET test project included in `app.sln`.
-- Alternatively, target the project directly with `dotnet test tests/server.tests/server.tests.csproj`.
+- Run `dotnet test --solution app.sln` from the repository root to execute the .NET test project included in `app.sln`.
+- Alternatively, target the project directly with `dotnet test --project tests/server.tests/server.tests.csproj`.
 - The tests do not require an external database.
 
 ## Updating Dependencies
@@ -170,7 +170,7 @@ The VS Code flow intentionally uses the `http-cli` launch profile instead of the
 ### Client
 
 - JavaScript/TypeScript packages: run `npm outdated` at the repository root and inside `client/` to see what can be updated. Use `npm update` in each location for compatible updates, or `npm install <package>@latest` when you need to jump to a new major version.
-- After updating Node packages, reinstall if needed (`npm install`, `cd client && npm install`) and rerun key checks like `npm run lint`, `cd client && npm test`, and `dotnet test`.
+- After updating Node packages, reinstall if needed (`npm install`, `cd client && npm install`) and rerun key checks like `npm run lint`, `cd client && npm test`, and `dotnet test --solution app.sln`.
 
 ### Server
 
@@ -192,7 +192,7 @@ dotnet-outdated --upgrade --version-lock Major
 
 If you update a package that a tool depends on, update the matching tool version as well so local development stays consistent.
 
-And as always, after updating dependencies, make sure to run `dotnet build` and `dotnet test` to verify everything is working.
+And as always, after updating dependencies, make sure to run `dotnet build` and `dotnet test --solution app.sln` to verify everything is working.
 
 ## Project Structure
 
@@ -240,4 +240,4 @@ And as always, after updating dependencies, make sure to run `dotnet build` and 
 - `dotnet run` - Start the .NET application
 - `dotnet watch` - Start with hot reload
 - `dotnet build` - Build the application
-- `dotnet test` - Run tests
+- `dotnet test --solution app.sln` - Run tests

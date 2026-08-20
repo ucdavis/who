@@ -141,7 +141,7 @@ export const DataTable = <TData extends object>({
               <tr key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
                   <th
-                    className="cursor-pointer"
+                    className="cursor-pointer select-none"
                     key={header.id}
                     onClick={header.column.getToggleSortingHandler?.()}
                   >

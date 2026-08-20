@@ -139,26 +139,52 @@ export const DataTable = <TData extends object>({
           <thead>
             {table.getHeaderGroups().map((headerGroup) => (
               <tr key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <th
-                    className="cursor-pointer select-none"
-                    key={header.id}
-                    onClick={header.column.getToggleSortingHandler?.()}
-                  >
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
-                    {/* Add sort indicator if column is sorted */}
-                    {header.column.getIsSorted() === 'asc'
-                      ? ' (asc)'
-                      : header.column.getIsSorted() === 'desc'
-                        ? ' (desc)'
-                        : ''}
-                  </th>
-                ))}
+                {headerGroup.headers.map((header) => {
+                  const sortDirection = header.column.getIsSorted();
+
+                  return (
+                    <th
+                      aria-sort={
+                        sortDirection === 'asc'
+                          ? 'ascending'
+                          : sortDirection === 'desc'
+                            ? 'descending'
+                            : undefined
+                      }
+                      className="cursor-pointer select-none"
+                      key={header.id}
+                      onClick={header.column.getToggleSortingHandler?.()}
+                    >
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
+                      {sortDirection ? (
+                        <svg
+                          aria-hidden="true"
+                          className="ml-1 inline-block h-4 w-4 align-text-bottom"
+                          fill="none"
+                          viewBox="0 0 20 20"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d={
+                              sortDirection === 'asc'
+                                ? 'm5 12.5 5-5 5 5'
+                                : 'm5 7.5 5 5 5-5'
+                            }
+                            stroke="currentColor"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                          />
+                        </svg>
+                      ) : null}
+                    </th>
+                  );
+                })}
               </tr>
             ))}
           </thead>

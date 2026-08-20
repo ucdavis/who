@@ -242,6 +242,15 @@ When coordinating async work, prefer explicit completion signals and proper asyn
 
 If timing code seems necessary, first identify the real dependency being waited on and model that dependency directly. Use timeouts only for bounded failure handling, cancellation, user feedback, or external-system resilience, not as a substitute for correct async flow.
 
+### App Settings and Secrets
+
+When a task adds or starts consuming an application setting, environment variable, connection string, secret, or other configuration key:
+
+1. Trace where the key must be defined and propagated for local development, tests, CI/CD, deployed environments, and infrastructure. Check relevant app settings files, `.env.example` files, options/configuration binding, Bicep files and modules, deployment parameters, GitHub Actions workflows, and documentation rather than assuming the code change alone is sufficient.
+2. Unless the user already explicitly requested end-to-end configuration and deployment changes, identify the additional repository-managed files that appear to require updates and ask whether the user wants those changes made, including required Bicep or other infrastructure-as-code changes. Do not silently expand the task into those files.
+3. Never add a real secret value to source control. Use only the configuration key name, a safe placeholder, or secure parameter/secret-reference wiring.
+4. If the user approves the related repository changes and they are made, explicitly remind the user in the final response to add or update the corresponding secret or variable in each applicable GitHub Environment. Name the environments and key names when they can be determined, but never include secret values. Also call out any required GitHub repository- or organization-level variables or secrets separately.
+
 ## Common Patterns
 
 ### Route Component Example

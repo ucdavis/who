@@ -210,6 +210,11 @@ export function PeopleDetailsPanel({
             <div className="grid gap-2 sm:grid-cols-2">
               {fields.map((field) => (
                 <DetailValue
+                  detailsHref={
+                    field.key === 'reportsToIamId'
+                      ? getPeopleDetailHref(field.value)
+                      : undefined
+                  }
                   key={field.key}
                   label={field.label}
                   value={field.value}
@@ -249,7 +254,15 @@ export function PeopleAffiliations({
   );
 }
 
-function DetailValue({ label, value }: { label: string; value: string }) {
+function DetailValue({
+  detailsHref,
+  label,
+  value,
+}: {
+  detailsHref?: string;
+  label: string;
+  value: string;
+}) {
   return (
     <div className="group rounded-lg border border-base-300 bg-base-200/30 px-3 py-2">
       <div className="flex items-start justify-between gap-3">
@@ -259,10 +272,48 @@ function DetailValue({ label, value }: { label: string; value: string }) {
           </div>
           <div className="break-words font-medium">{value}</div>
         </div>
-        <CopyValueButton label={label} value={value} />
+        <div className="flex shrink-0 items-center">
+          {detailsHref ? (
+            <a
+              aria-label={`Open ${label} details`}
+              className="btn btn-ghost btn-xs btn-circle opacity-70 transition-opacity group-hover:opacity-100 focus:opacity-100"
+              href={detailsHref}
+              rel="noopener noreferrer"
+              target="_blank"
+              title={`Open ${label} details`}
+            >
+              <svg
+                aria-hidden="true"
+                className="h-4 w-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M14 5h5v5M19 5l-9 9"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                />
+                <path
+                  d="M19 14v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h4"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                />
+              </svg>
+            </a>
+          ) : null}
+          <CopyValueButton label={label} value={value} />
+        </div>
       </div>
     </div>
   );
+}
+
+export function getPeopleDetailHref(value: string) {
+  return `/detail/${encodeURIComponent(value).replaceAll('%40', '@')}`;
 }
 
 function CopyValueButton({ label, value }: { label: string; value: string }) {

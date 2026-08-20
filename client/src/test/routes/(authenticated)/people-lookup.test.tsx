@@ -4,8 +4,8 @@ import { describe, expect, it } from 'vitest';
 import { http, HttpResponse } from 'msw';
 import {
   detectSearchTypeFromText,
-  getPeopleDetailHref,
 } from '@/routes/(authenticated)/index.tsx';
+import { getPeopleDetailHref } from '@/shared/peopleLookupDetails.tsx';
 import { server } from '@/test/mswUtils.ts';
 import { renderRoute } from '@/test/routerUtils.tsx';
 

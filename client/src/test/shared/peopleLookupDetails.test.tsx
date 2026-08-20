@@ -90,6 +90,30 @@ describe('PeopleDetailsPanel', () => {
     expect(screen.queryByText('Last Updated')).not.toBeInTheDocument();
   });
 
+  it('links Reports To details in a new tab before the copy button', () => {
+    render(
+      <PeopleDetailsPanel
+        allowSensitiveInfo={true}
+        result={{ ...baseResult, reportsToIamId: '1000123456' }}
+      />
+    );
+
+    const detailsLink = screen.getByRole('link', {
+      name: 'Open Reports To details',
+    });
+    const copyButton = screen.getByRole('button', {
+      name: 'Copy Reports To',
+    });
+
+    expect(detailsLink).toHaveAttribute('href', '/detail/1000123456');
+    expect(detailsLink).toHaveAttribute('target', '_blank');
+    expect(detailsLink).toHaveAttribute('rel', 'noopener noreferrer');
+    expect(
+      detailsLink.compareDocumentPosition(copyButton) &
+        Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy();
+  });
+
   it('can hide the search field for the dedicated detail page', () => {
     render(
       <PeopleDetailsPanel

@@ -3,6 +3,7 @@ import { type CsvColumn } from '@/lib/csv.ts';
 import { DataTable } from '@/shared/dataTable.tsx';
 import { ExportDataButton } from '@/shared/exportDataButton.tsx';
 import {
+  getPeopleDetailHref,
   PeopleDetailsPanel,
   type PeopleLookupResponse,
   type PeopleSearchResult,
@@ -172,10 +173,6 @@ const sensitiveCsvColumns: CsvColumn<PeopleSearchResult>[] = [
 
 function getDetailId(result: PeopleSearchResult) {
   return result.kerbId?.trim() ?? '';
-}
-
-export function getPeopleDetailHref(value: string) {
-  return `/detail/${encodeURIComponent(value).replaceAll('%40', '@')}`;
 }
 
 export function detectSearchTypeFromText(

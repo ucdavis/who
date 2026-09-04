@@ -27,10 +27,13 @@ param resourceGroupName string = 'rg-${appName}-${env}'
 @description('Display name for this deployment app registration.')
 param applicationName string = '${appName}-github-${env}-deploy'
 
+@description('Existing App Service plan name that deployment may join.')
+param webPlanName string = env == 'prod' ? 'Nibbler' : 'DefaultPlan2'
+
 @description('Resource group containing the existing App Service plan that deployment may join.')
 param webPlanResourceGroup string = env == 'prod' ? 'service-plans-linux' : 'Default-Web-WestUS'
 
-@description('Assign deployment RBAC on the target resource group and App Service plan resource group. Requires Owner or User Access Administrator at each target scope.')
+@description('Assign deployment RBAC on the target resource group and existing App Service plan. Requires Owner at subscription scope, or a subscription role granting resource-group creation plus User Access Administrator on each existing target resource group.')
 param assignRbac bool = true
 
 var githubIssuer = 'https://token.actions.githubusercontent.com'
@@ -80,12 +83,13 @@ module contributorAssignment 'modules/role-assignment.bicep' = if (deploymentGua
   }
 }
 
-module webPlanRoleAssignment 'modules/role-assignment.bicep' = if (deploymentGuardPassed && assignRbac) {
+module webPlanRoleAssignment 'modules/web-plan-role-assignment.bicep' = if (deploymentGuardPassed && assignRbac) {
   name: '${env}-web-plan-role-assignment'
   scope: resourceGroup(webPlanResourceGroup)
   params: {
     principalId: servicePrincipal!.id
     roleDefinitionId: websiteContributorRoleDefinitionId
+    webPlanName: webPlanName
   }
 }
 

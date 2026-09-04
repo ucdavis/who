@@ -16,7 +16,7 @@ on:
         description: Base application name used by the Azure Bicep template.
         required: false
         type: string
-        default: webapp
+        default: who
       web_app_name:
         description: Existing App Service name to deploy when deploy_infra is false.
         required: false
@@ -92,8 +92,8 @@ jobs:
       RESOURCE_GROUP: ${{ inputs.resource_group || vars.RESOURCE_GROUP }}
       USEROSETTALOOKUP: ${{ vars.USEROSETTALOOKUP }}
       WEB_APP_NAME_INPUT: ${{ inputs.web_app_name || vars.WEB_APP_NAME }}
-      WEB_SKU_NAME: ${{ vars.WEB_SKU_NAME }}
-      WEB_SKU_TIER: ${{ vars.WEB_SKU_TIER }}
+      WEB_PLAN_NAME: ${{ vars.WEB_PLAN_NAME }}
+      WEB_PLAN_RESOURCE_GROUP: ${{ vars.WEB_PLAN_RESOURCE_GROUP }}
 
     steps:
       - name: Checkout
@@ -214,8 +214,8 @@ jobs:
           }
 
           add_param "location" "$AZURE_LOCATION"
-          add_param "webSkuName" "$WEB_SKU_NAME"
-          add_param "webSkuTier" "$WEB_SKU_TIER"
+          add_param "webPlanName" "$WEB_PLAN_NAME"
+          add_param "webPlanResourceGroup" "$WEB_PLAN_RESOURCE_GROUP"
           add_param "authClientId" "$AUTH_CLIENT_ID"
           add_param "authTenantId" "$AUTH_TENANT_ID"
           add_param "authDomain" "$AUTH_DOMAIN"

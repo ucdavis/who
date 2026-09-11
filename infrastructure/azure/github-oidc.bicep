@@ -49,6 +49,9 @@ var repositoryIsConfigured = length(repositoryParts) == 2 && !empty(repositoryPa
 var deploymentGuardPassed = !empty(expectedSubscriptionId) && repositoryIsConfigured && normalizedCurrentSubscriptionId == normalizedExpectedSubscriptionId && endsWith(normalizedResourceGroupName, expectedResourceGroupSuffix)
 var federatedCredentialName = 'github-environment-${env}'
 var federatedCredentialSubject = 'repo:${repository}:environment:${env}'
+var appNameSafe = toLower(replace(replace(appName, ' ', ''), '_', ''))
+var webPlanRoleAssignmentDeploymentToken = substring(uniqueString(repository, applicationName), 0, 8)
+var webPlanRoleAssignmentDeploymentName = '${take(appNameSafe, 32)}-${env}-web-plan-${webPlanRoleAssignmentDeploymentToken}'
 
 resource environmentResourceGroup 'Microsoft.Resources/resourceGroups@2024-03-01' = if (deploymentGuardPassed) {
   name: resourceGroupName
@@ -84,7 +87,7 @@ module contributorAssignment 'modules/role-assignment.bicep' = if (deploymentGua
 }
 
 module webPlanRoleAssignment 'modules/web-plan-role-assignment.bicep' = if (deploymentGuardPassed && assignRbac) {
-  name: '${env}-web-plan-role-assignment'
+  name: webPlanRoleAssignmentDeploymentName
   scope: resourceGroup(webPlanResourceGroup)
   params: {
     principalId: servicePrincipal!.id

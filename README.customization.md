@@ -77,9 +77,45 @@ Optional environment variables:
 - Rosetta client secret: `ROSETTACLIENT__CLIENTSECRET`
 - Observability: `OTEL_EXPORTER_OTLP_ENDPOINT`, `OTEL_EXPORTER_OTLP_PROTOCOL`, `OTEL_SERVICE_NAME`, `OTEL_RESOURCE_ATTRIBUTES`
 - Observability secret: `OTEL_EXPORTER_OTLP_HEADERS`
-- App Service SKU: `WEB_SKU_NAME`, `WEB_SKU_TIER`
+- Existing App Service plan overrides: `WEB_PLAN_NAME`, `WEB_PLAN_RESOURCE_GROUP`
 
-Run `infrastructure/azure/github-oidc.bicep` once per environment before the first GitHub deployment. The bootstrap is only for GitHub-to-Azure deployment authentication; it is separate from the user sign-in app registration.
+Run `infrastructure/azure/github-oidc.bicep` once per environment before the first GitHub deployment. The bootstrap is only for GitHub-to-Azure deployment authentication; it is separate from the user sign-in app registration. If the app uses a shared App Service plan in another resource group, the bootstrap also assigns the GitHub deployment identity `Website Contributor` on that specific App Service plan so deployments can join it.
+
+Validate the bootstrap before applying it:
+
+```bash
+az deployment sub validate \
+  --subscription <test-subscription-id> \
+  --location westus2 \
+  --template-file infrastructure/azure/github-oidc.bicep \
+  --parameters \
+    appName=who \
+    repository=ucdavis/who \
+    env=test \
+    expectedSubscriptionId=<test-subscription-id> \
+    resourceGroupName=rg-who-test \
+    webPlanName=DefaultPlan2 \
+    webPlanResourceGroup=Default-Web-WestUS
+```
+
+Apply the bootstrap once validation succeeds:
+
+```bash
+az deployment sub create \
+  --subscription <test-subscription-id> \
+  --location westus2 \
+  --template-file infrastructure/azure/github-oidc.bicep \
+  --parameters \
+    appName=who \
+    repository=ucdavis/who \
+    env=test \
+    expectedSubscriptionId=<test-subscription-id> \
+    resourceGroupName=rg-who-test \
+    webPlanName=DefaultPlan2 \
+    webPlanResourceGroup=Default-Web-WestUS
+```
+
+Use `env=prod`, the production subscription ID, `resourceGroupName=rg-who-prod`, `webPlanName=Nibbler`, and `webPlanResourceGroup=service-plans-linux` for production. The user applying the bootstrap needs Owner at subscription scope, or an equivalent subscription role granting resource-group creation plus User Access Administrator on each existing target resource group.
 
 Local deployment:
 

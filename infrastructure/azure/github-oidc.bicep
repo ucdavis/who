@@ -1,8 +1,6 @@
 targetScope = 'subscription'
 
-extension microsoftGraphV1_0
-
-@description('Base application name used for generated Azure and Entra names.')
+@description('Base application name used for generated Azure resource names.')
 param appName string = 'who'
 
 @description('GitHub repository in owner/name format.')
@@ -24,8 +22,8 @@ param expectedSubscriptionId string
 @description('Azure resource group assigned to this deployment identity.')
 param resourceGroupName string = 'rg-${appName}-${env}'
 
-@description('Display name for this deployment app registration.')
-param applicationName string = '${appName}-github-${env}-deploy'
+@description('Name of the user-assigned managed identity used by GitHub Actions.')
+param deploymentIdentityName string = 'id-${toLower(replace(replace(appName, ' ', ''), '_', ''))}-${env}-deploy'
 
 @description('Existing App Service plan name that deployment may join.')
 param webPlanName string = env == 'prod' ? 'Nibbler' : 'DefaultPlan2'
@@ -33,7 +31,7 @@ param webPlanName string = env == 'prod' ? 'Nibbler' : 'DefaultPlan2'
 @description('Resource group containing the existing App Service plan that deployment may join.')
 param webPlanResourceGroup string = env == 'prod' ? 'service-plans-linux' : 'Default-Web-WestUS'
 
-@description('Assign deployment RBAC on the target resource group and existing App Service plan. Requires Owner at subscription scope, or a subscription role granting resource-group creation plus User Access Administrator on each existing target resource group.')
+@description('Assign deployment RBAC on the target resource group and existing App Service plan. Requires permission to create the resource group and role assignments at both target scopes.')
 param assignRbac bool = true
 
 var githubIssuer = 'https://token.actions.githubusercontent.com'
@@ -50,7 +48,7 @@ var deploymentGuardPassed = !empty(expectedSubscriptionId) && repositoryIsConfig
 var federatedCredentialName = 'github-environment-${env}'
 var federatedCredentialSubject = 'repo:${repository}:environment:${env}'
 var appNameSafe = toLower(replace(replace(appName, ' ', ''), '_', ''))
-var webPlanRoleAssignmentDeploymentToken = substring(uniqueString(repository, applicationName), 0, 8)
+var webPlanRoleAssignmentDeploymentToken = substring(uniqueString(repository, deploymentIdentityName), 0, 8)
 var webPlanRoleAssignmentDeploymentName = '${take(appNameSafe, 32)}-${env}-web-plan-${webPlanRoleAssignmentDeploymentToken}'
 
 resource environmentResourceGroup 'Microsoft.Resources/resourceGroups@2024-03-01' = if (deploymentGuardPassed) {
@@ -58,30 +56,24 @@ resource environmentResourceGroup 'Microsoft.Resources/resourceGroups@2024-03-01
   location: location
 }
 
-resource application 'Microsoft.Graph/applications@v1.0' = if (deploymentGuardPassed) {
-  uniqueName: applicationName
-  displayName: applicationName
-  signInAudience: 'AzureADMyOrg'
-
-  resource federatedCredential 'federatedIdentityCredentials@v1.0' = {
-    name: '${applicationName}/${federatedCredentialName}'
-    issuer: githubIssuer
-    subject: federatedCredentialSubject
-    audiences: [
-      azureTokenExchangeAudience
-    ]
+module deploymentIdentity 'modules/deployment-identity.bicep' = if (deploymentGuardPassed) {
+  name: '${env}-deployment-identity'
+  scope: environmentResourceGroup
+  params: {
+    deploymentIdentityName: deploymentIdentityName
+    federatedCredentialAudience: azureTokenExchangeAudience
+    federatedCredentialIssuer: githubIssuer
+    federatedCredentialName: federatedCredentialName
+    federatedCredentialSubject: federatedCredentialSubject
+    location: location
   }
-}
-
-resource servicePrincipal 'Microsoft.Graph/servicePrincipals@v1.0' = if (deploymentGuardPassed) {
-  appId: application!.appId
 }
 
 module contributorAssignment 'modules/role-assignment.bicep' = if (deploymentGuardPassed && assignRbac) {
   name: '${env}-contributor-assignment'
   scope: environmentResourceGroup
   params: {
-    principalId: servicePrincipal!.id
+    principalId: deploymentIdentity!.outputs.principalId
     roleDefinitionId: contributorRoleDefinitionId
   }
 }
@@ -90,17 +82,17 @@ module webPlanRoleAssignment 'modules/web-plan-role-assignment.bicep' = if (depl
   name: webPlanRoleAssignmentDeploymentName
   scope: resourceGroup(webPlanResourceGroup)
   params: {
-    principalId: servicePrincipal!.id
+    principalId: deploymentIdentity!.outputs.principalId
     roleDefinitionId: websiteContributorRoleDefinitionId
     webPlanName: webPlanName
   }
 }
 
-output applicationName string = deploymentGuardPassed ? application!.displayName : ''
-output clientId string = deploymentGuardPassed ? application!.appId : ''
+output clientId string = deploymentGuardPassed ? deploymentIdentity!.outputs.clientId : ''
+output deploymentIdentityName string = deploymentGuardPassed ? deploymentIdentity!.outputs.deploymentIdentityName : ''
 output deploymentGuardPassed bool = deploymentGuardPassed
 output federatedCredentialSubject string = deploymentGuardPassed ? federatedCredentialSubject : ''
-output principalId string = deploymentGuardPassed ? servicePrincipal!.id : ''
+output principalId string = deploymentGuardPassed ? deploymentIdentity!.outputs.principalId : ''
 output resourceGroupName string = deploymentGuardPassed ? environmentResourceGroup!.name : ''
 output roleAssignmentId string = deploymentGuardPassed && assignRbac ? contributorAssignment!.outputs.roleAssignmentId : ''
 output subscriptionId string = deploymentGuardPassed ? subscription().subscriptionId : ''

@@ -71,7 +71,7 @@ Application Insights and Log Analytics
 
 Each deployment validates the expected subscription ID and requires the target resource group to end with the matching environment suffix before resources are created.
 
-GitHub deployments authenticate to Azure with OIDC through a per-environment Entra app registration. The one-time bootstrap template creates the app registration, service principal, GitHub Environment federated credential, and optional Contributor assignment on the environment resource group.
+GitHub deployments authenticate to Azure with OIDC through a per-environment user-assigned managed identity. The one-time bootstrap template creates the managed identity in the application resource group, adds the GitHub Environment federated credential, and optionally assigns Contributor on the environment resource group and Website Contributor on the exact shared App Service plan. This deployment identity is separate from the app registration used for user sign-in. See the [managed identity cutover runbook](../README.customization.md#managed-identity-cutover) for existing installations.
 
 ## Key Files
 
@@ -127,9 +127,9 @@ Responsibilities:
 
 Responsibilities:
 
-- Creates the per-environment GitHub OIDC deployment identity
+- Creates the per-environment GitHub OIDC user-assigned managed identity through `modules/deployment-identity.bicep`
 - Adds the federated credential for `repo:<owner>/<repo>:environment:<env>`
-- Optionally assigns Contributor on the target resource group
+- Optionally assigns Contributor on the target resource group and Website Contributor on the exact shared App Service plan
 
 ### `.github/workflows/ci-cd.yml`
 

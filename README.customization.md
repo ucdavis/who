@@ -57,7 +57,7 @@ The deployment scaffold creates Linux App Service, Log Analytics, and workspace-
 
 GitHub Environments named `test` and `prod` need these variables from the OIDC bootstrap output or your Azure subscription:
 
-- `AZURE_CLIENT_ID`
+- `AZURE_CLIENT_ID` (the deployment managed identity's `clientId`, not `AUTH_CLIENT_ID`)
 - `AZURE_TENANT_ID`
 - `AZURE_SUBSCRIPTION_ID`
 - `RESOURCE_GROUP`
@@ -79,9 +79,19 @@ Optional environment variables:
 - Observability secret: `OTEL_EXPORTER_OTLP_HEADERS`
 - Existing App Service plan overrides: `WEB_PLAN_NAME`, `WEB_PLAN_RESOURCE_GROUP`
 
-Run `infrastructure/azure/github-oidc.bicep` once per environment before the first GitHub deployment. The bootstrap is only for GitHub-to-Azure deployment authentication; it is separate from the user sign-in app registration. If the app uses a shared App Service plan in another resource group, the bootstrap also assigns the GitHub deployment identity `Website Contributor` on that specific App Service plan so deployments can join it.
+### One-time OIDC bootstrap
 
-Validate the bootstrap before applying it:
+Run `infrastructure/azure/github-oidc.bicep` once per environment before the first GitHub deployment. Run it again after repository, organization, GitHub Environment, resource group, subscription, shared App Service plan, or identity changes, or if the managed identity is deleted.
+
+The bootstrap creates a user-assigned managed identity in the application resource group and a federated credential for `repo:<repository>:environment:<env>`. It trusts issuer `https://token.actions.githubusercontent.com` and audience `api://AzureADTokenExchange`. GitHub Actions uses short-lived tokens without an Azure client secret. This is separate from the user sign-in app registration: do not use the deployment identity's `clientId` for `AUTH_CLIENT_ID` or `Auth:ClientId`.
+
+By default, the identity receives Contributor on the application resource group and Website Contributor on the exact shared App Service plan. Because the identity lives in that resource group, it can manage its own identity resource and federated credentials; Contributor does not grant permission to manage Azure RBAC assignments.
+
+The default identity names are `id-who-test-deploy` and `id-who-prod-deploy`. Override them with the `deploymentIdentityName` parameter if needed. This parameter and the output of the same name replace the previous `applicationName` parameter/output; update any external bootstrap callers accordingly.
+
+The operator needs permission to create the application resource group, managed identity, and federated credential. With the default `assignRbac=true`, the operator also needs permission to create role assignments at the application resource group and shared App Service plan scopes. Owner at subscription scope is sufficient; narrower permissions can combine resource-group and managed-identity creation rights with User Access Administrator or Role Based Access Control Administrator at the required role-assignment scopes. With `assignRbac=false`, the identity and federated credential are still created, but an authorized operator must grant Contributor and Website Contributor to the emitted `principalId` before GitHub deployment can work.
+
+Use the actual subscription, repository, resource group, location, and shared plan values for the target environment. The following examples use this app's test defaults. Validate the bootstrap before applying it:
 
 ```bash
 az deployment sub validate \
@@ -98,10 +108,10 @@ az deployment sub validate \
     webPlanResourceGroup=Default-Web-WestUS
 ```
 
-Apply the bootstrap once validation succeeds:
+Preview the changes with the same parameters:
 
 ```bash
-az deployment sub create \
+az deployment sub what-if \
   --subscription <test-subscription-id> \
   --location westus2 \
   --template-file infrastructure/azure/github-oidc.bicep \
@@ -115,9 +125,43 @@ az deployment sub create \
     webPlanResourceGroup=Default-Web-WestUS
 ```
 
-Use `env=prod`, the production subscription ID, `resourceGroupName=rg-who-prod`, `webPlanName=Nibbler`, and `webPlanResourceGroup=service-plans-linux` for production. The user applying the bootstrap needs Owner at subscription scope, or an equivalent subscription role granting resource-group creation plus User Access Administrator on each existing target resource group.
+Apply the bootstrap once validation and the preview succeed:
 
-Local deployment:
+```bash
+az deployment sub create \
+  --name github-oidc-who-test \
+  --subscription <test-subscription-id> \
+  --location westus2 \
+  --template-file infrastructure/azure/github-oidc.bicep \
+  --query properties.outputs \
+  --parameters \
+    appName=who \
+    repository=ucdavis/who \
+    env=test \
+    expectedSubscriptionId=<test-subscription-id> \
+    resourceGroupName=rg-who-test \
+    webPlanName=DefaultPlan2 \
+    webPlanResourceGroup=Default-Web-WestUS
+```
+
+Require `deploymentGuardPassed=true` and populated `deploymentIdentityName`, `clientId`, `principalId`, `tenantId`, `subscriptionId`, `resourceGroupName`, and `federatedCredentialSubject` outputs. With `assignRbac=true`, also require `roleAssignmentId` and `webPlanRoleAssignmentId`. A false guard creates no resources and emits empty identity outputs; a successful CLI exit alone is not sufficient. Check the subscription, repository, and environment resource-group suffix before continuing.
+
+Use `env=prod`, the production subscription ID, deployment name `github-oidc-who-prod`, `resourceGroupName=rg-who-prod`, `webPlanName=Nibbler`, and `webPlanResourceGroup=service-plans-linux` for production, unless the actual environment uses overrides.
+
+### Managed identity cutover
+
+For an existing installation that uses a deployment app registration, perform this rollout separately from the repository update:
+
+1. Record the current `AZURE_CLIENT_ID` from the **test** GitHub Environment for rollback. Confirm its actual subscription, tenant, resource group, repository, location, and shared App Service plan values.
+2. Validate, preview, and apply the bootstrap for `test` using the commands above. Require the guard and outputs described above, with subject `repo:<actual-repository>:environment:test`. This adds the managed identity and parallel RBAC assignments; it does not delete or modify the old app registration, service principal, federated credentials, or role assignments.
+3. Set the **test** GitHub Environment variable `AZURE_CLIENT_ID` to the new `clientId` output. Verify `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID`, and `RESOURCE_GROUP` against the corresponding outputs. Leave `AUTH_CLIENT_ID` and the user sign-in configuration unchanged. No new secrets or repository/organization-level variables are needed.
+4. In GitHub Actions, manually run **CI/CD** (`ci-cd.yml`) from the branch containing the port, choosing `environment=test` and `deploy_infra=true`. Verify the Azure login, infrastructure deployment, and package deployment steps succeed. Check the deployed app's `/health` endpoint, user sign-in, and people lookup.
+5. After test verification succeeds, repeat steps 1–4 for **prod**, recording its old client ID, using production values and subject, updating the **prod** GitHub Environment's `AZURE_CLIENT_ID`, and manually selecting `environment=prod`.
+6. If cutover fails, restore the affected GitHub Environment's previous `AZURE_CLIENT_ID` and rerun its manual deployment. Leave both identities and their role assignments in place; cleanup is outside this rollout.
+
+Pushes to `main` already trigger test deployment followed by production deployment, subject to environment protection rules. Coordinate cutover with those runs and use environment-specific manual runs to verify each new identity. Merging this port alone does not switch the workflow identity; the environment's `AZURE_CLIENT_ID` selects it.
+
+### Local deployment
 
 ```bash
 export APP_NAME="<app-name>"
@@ -139,6 +183,7 @@ PEOPLELOOKUP_IAMKEY="<iamws-api-key>" DEPLOY_INFRA=false WEB_APP_NAME="<app-serv
 - `cd client && npm test -- --run` succeeds.
 - `dotnet build app.sln` succeeds.
 - `dotnet test app.sln` succeeds.
-- `az bicep build --file infrastructure/azure/main.bicep` succeeds when Azure CLI/Bicep is available.
+- `az bicep build --file infrastructure/azure/github-oidc.bicep --stdout > /tmp/who-github-oidc.json` succeeds when Azure CLI/Bicep is available.
+- `az bicep build --file infrastructure/azure/main.bicep --stdout > /tmp/who-main.json` succeeds when Azure CLI/Bicep is available.
 - Sign-in works locally and in hosted environments.
 - IAM lookup works with the configured key.

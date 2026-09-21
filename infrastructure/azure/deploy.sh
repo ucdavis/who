@@ -14,10 +14,12 @@ Required for deployments:
   PEOPLELOOKUP_IAMKEY    IAM people lookup API key.
 
 Common configuration:
-  APP_NAME               Base Azure resource name. Default: webapp
+  APP_NAME               Base Azure resource name. Default: who
   AZURE_SUBSCRIPTION_ID  Expected subscription. Default: current az account
   AZURE_LOCATION         Azure region used when creating the resource group. Default: westus2
   RESOURCE_GROUP         Target resource group. Default: rg-${APP_NAME}-${DEPLOY_ENV}
+  WEB_PLAN_NAME          Existing App Service plan name. Defaults by environment in Bicep.
+  WEB_PLAN_RESOURCE_GROUP Resource group containing the existing App Service plan. Defaults by environment in Bicep.
   DEPLOY_INFRA           Deploy infrastructure before app deploy. Default: true
   BUILD_APP              Restore, build, test, publish, and package locally. Default: true
   RUN_TESTS              Run frontend and .NET tests during BUILD_APP. Default: true
@@ -92,7 +94,7 @@ script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 repo_root="$(cd "$script_dir/../.." && pwd)"
 
 DEPLOY_ENV="${DEPLOY_ENV:-}"
-APP_NAME="${APP_NAME:-webapp}"
+APP_NAME="${APP_NAME:-who}"
 AZURE_LOCATION="${AZURE_LOCATION:-westus2}"
 RESOURCE_GROUP="${RESOURCE_GROUP:-rg-${APP_NAME}-${DEPLOY_ENV}}"
 DEPLOY_INFRA="${DEPLOY_INFRA:-true}"
@@ -184,8 +186,8 @@ if is_true "$DEPLOY_INFRA"; then
   )
 
   add_param "location" "$AZURE_LOCATION"
-  add_param "webSkuName" "${WEB_SKU_NAME:-}"
-  add_param "webSkuTier" "${WEB_SKU_TIER:-}"
+  add_param "webPlanName" "${WEB_PLAN_NAME:-}"
+  add_param "webPlanResourceGroup" "${WEB_PLAN_RESOURCE_GROUP:-}"
   add_param "authClientId" "${AUTH_CLIENT_ID:-}"
   add_param "authTenantId" "${AUTH_TENANT_ID:-}"
   add_param "authDomain" "${AUTH_DOMAIN:-}"

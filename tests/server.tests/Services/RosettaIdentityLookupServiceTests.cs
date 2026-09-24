@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Net;
 using System.Text;
 using System.Text.Json;
@@ -12,6 +13,37 @@ namespace Server.Tests.Services;
 
 public class RosettaIdentityLookupServiceTests
 {
+    [Theory]
+    [InlineData("2026-05-22T21:00:14.710", "2026-05-22T21:00:14.710+00:00", false)]
+    [InlineData("2026-05-22T21:00:14.710", "2026-05-22T21:00:14.710+00:00", true)]
+    [InlineData("2026-01-22T21:00:14.710", "2026-01-22T21:00:14.710+00:00", false)]
+    [InlineData("2026-05-22T21:00:14.710Z", "2026-05-22T21:00:14.710+00:00", false)]
+    public async Task Lookup_treats_Rosetta_modified_date_as_UTC(
+        string modifiedDate,
+        string expectedUtc,
+        bool bulkLookup)
+    {
+        using var restClient = new HttpClient(new PeopleWithLastUpdatedHandler(
+            modifiedDate,
+            bulkLookup ? HttpMethod.Post : HttpMethod.Get));
+        using var graphQlClient = new HttpClient(new PeoplePostHandler())
+        {
+            BaseAddress = new Uri("https://example.test/api/v1/graphql")
+        };
+        using var rosettaClient = new RosettaClient(restClient, graphQlClient, CreateRosettaOptions());
+        var service = new RosettaIdentityLookupService(
+            rosettaClient,
+            Options.Create(new PeopleLookupOptions()));
+
+        var result = bulkLookup
+            ? (await service.LookupMany(BulkPeopleSearchField.IamId, ["1000000001"])).Single()
+            : await service.Lookup("person@example.test");
+
+        result.Found.Should().BeTrue();
+        result.LastUpdated.Should().Be(DateTimeOffset.Parse(expectedUtc, CultureInfo.InvariantCulture));
+        result.LastUpdated!.Value.Offset.Should().Be(TimeSpan.Zero);
+    }
+
     [Fact]
     public async Task LookupMany_posts_iam_ids_in_configured_batches_and_preserves_input_order()
     {
@@ -159,6 +191,33 @@ public class RosettaIdentityLookupServiceTests
             ClientSecret = "test-secret",
             ApiVersion = "v1"
         };
+    }
+
+    private sealed class PeopleWithLastUpdatedHandler(
+        string modifiedDate,
+        HttpMethod expectedMethod) : HttpMessageHandler
+    {
+        protected override Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request,
+            CancellationToken cancellationToken)
+        {
+            request.Method.Should().Be(expectedMethod);
+            request.RequestUri!.AbsolutePath.Should().Be("/api/v1/people");
+            var responseBody = JsonSerializer.Serialize(new[]
+            {
+                new
+                {
+                    iam_id = "1000000001",
+                    displayname = "Person Example",
+                    modified_date = modifiedDate
+                }
+            });
+
+            return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent(responseBody, Encoding.UTF8, "application/json")
+            });
+        }
     }
 
     private sealed class PeoplePostHandler : HttpMessageHandler

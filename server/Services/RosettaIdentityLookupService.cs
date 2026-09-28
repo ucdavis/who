@@ -342,7 +342,8 @@ public class RosettaIdentityLookupService : IIdentityLookupService, IBulkIdentit
             BannerPidm = NormalizeValue(person.Id?.Pidm),
             EmployeeId = employeeId,
             MothraId = NormalizeValue(person.Id?.Mothra_id),
-            LastUpdated = person.Modified_date,
+            // Rosetta's clock time is UTC; discard the local offset added when its timezone-less value is parsed.
+            LastUpdated = new DateTimeOffset(person.Modified_date.DateTime, TimeSpan.Zero),
             Title = titles,
             ReportsToIamId = reportsToIamId,
             WorkPhone = NormalizeValue(person.Phone?.Work),

@@ -44,7 +44,7 @@ public class RosettaIdentityLookupService : IIdentityLookupService, IBulkIdentit
             }
             else
             {
-                people = await _client.Api.PeopleGETAsync(loginid: search);
+                people = await _client.Api.PeopleGETAsync(loginId: search);
             }
 
             var person = people.FirstOrDefault();
@@ -115,19 +115,19 @@ public class RosettaIdentityLookupService : IIdentityLookupService, IBulkIdentit
             switch (searchField)
             {
                 case PeopleSearchField.iamId:
-                    people = await _client.Api.PeopleGETAsync(iamid: search);
+                    people = await _client.Api.PeopleGETAsync(iamId: search);
                     break;
                 case PeopleSearchField.employeeId:
-                    people = await _client.Api.PeopleGETAsync(employeeid: search);
+                    people = await _client.Api.PeopleGETAsync(employeeId: search);
                     break;
                 case PeopleSearchField.studentId:
-                    people = await _client.Api.PeopleGETAsync(studentid: search);
+                    people = await _client.Api.PeopleGETAsync(studentId: search);
                     break;
                 case PeopleSearchField.mothraId:
-                    people = await _client.Api.PeopleGETAsync(mothraid: search);
+                    people = await _client.Api.PeopleGETAsync(mothraId: search);
                     break;
                 case PeopleSearchField.ppsId:
-                    people = await _client.Api.PeopleGETAsync(pps_id: search);
+                    people = await _client.Api.PeopleGETAsync(ppsId: search);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(searchField), searchField, "Unsupported people search field.");

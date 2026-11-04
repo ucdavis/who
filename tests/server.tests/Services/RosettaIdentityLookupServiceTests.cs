@@ -3,6 +3,7 @@ using System.Net;
 using System.Text;
 using System.Text.Json;
 using FluentAssertions;
+using Ietws;
 using Microsoft.Extensions.Options;
 using Server.Models.PeopleLookup;
 using Server.Services;
@@ -13,6 +14,39 @@ namespace Server.Tests.Services;
 
 public class RosettaIdentityLookupServiceTests
 {
+    [Theory]
+    [InlineData(null, "loginId")]
+    [InlineData(PeopleSearchField.iamId, "iamId")]
+    [InlineData(PeopleSearchField.employeeId, "employeeId")]
+    [InlineData(PeopleSearchField.studentId, "studentId")]
+    [InlineData(PeopleSearchField.mothraId, "mothraId")]
+    [InlineData(PeopleSearchField.ppsId, "ppsId")]
+    public async Task Lookup_uses_camel_case_identifier_query_parameters(
+        PeopleSearchField? searchField,
+        string expectedParameterName)
+    {
+        const string search = "1000000001";
+        using var restClient = new HttpClient(new PeopleWithLastUpdatedHandler(
+            "2026-05-22T21:00:14.710Z",
+            HttpMethod.Get,
+            $"?{expectedParameterName}={search}"));
+        using var graphQlClient = new HttpClient(new PeoplePostHandler())
+        {
+            BaseAddress = new Uri("https://example.test/api/v1/graphql")
+        };
+        using var rosettaClient = new RosettaClient(restClient, graphQlClient, CreateRosettaOptions());
+        var service = new RosettaIdentityLookupService(
+            rosettaClient,
+            Options.Create(new PeopleLookupOptions()));
+
+        var result = searchField.HasValue
+            ? await service.LookupId(searchField.Value, search)
+            : await service.Lookup(search);
+
+        result.ErrorMessage.Should().BeNull();
+        result.Found.Should().BeTrue();
+    }
+
     [Theory]
     [InlineData("2026-05-22T21:00:14.710", "2026-05-22T21:00:14.710+00:00", false)]
     [InlineData("2026-05-22T21:00:14.710", "2026-05-22T21:00:14.710+00:00", true)]
@@ -195,7 +229,8 @@ public class RosettaIdentityLookupServiceTests
 
     private sealed class PeopleWithLastUpdatedHandler(
         string modifiedDate,
-        HttpMethod expectedMethod) : HttpMessageHandler
+        HttpMethod expectedMethod,
+        string? expectedQuery = null) : HttpMessageHandler
     {
         protected override Task<HttpResponseMessage> SendAsync(
             HttpRequestMessage request,
@@ -203,6 +238,11 @@ public class RosettaIdentityLookupServiceTests
         {
             request.Method.Should().Be(expectedMethod);
             request.RequestUri!.AbsolutePath.Should().Be("/api/v1/people");
+            if (expectedQuery != null)
+            {
+                request.RequestUri.Query.Should().Be(expectedQuery);
+            }
+
             var responseBody = JsonSerializer.Serialize(new[]
             {
                 new

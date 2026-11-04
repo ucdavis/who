@@ -47,12 +47,12 @@ public class RosettaController : ControllerBase
 
         var people = await client.Api.PeopleGETAsync(
             lastname: lastName,
-            iamid: iamId,
+            iamId: iamId,
             email: email,
-            loginid: loginId,
-            employeeid: employeeId,
-            studentid: studentId,
-            pps_id: ppsId,
+            loginId: loginId,
+            employeeId: employeeId,
+            studentId: studentId,
+            ppsId: ppsId,
             department: department,
             cancellationToken: cancellationToken);
 
@@ -80,7 +80,7 @@ public class RosettaController : ControllerBase
 
         // Rosetta includes the legacy contact fields in its person response rather than a separate contact resource.
         var people = await client.Api.PeopleGETAsync(
-            iamid: id,
+            iamId: id,
             cancellationToken: cancellationToken);
 
         return Ok(people);

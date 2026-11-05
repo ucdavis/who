@@ -83,6 +83,7 @@ jobs:
       OTEL_RESOURCE_ATTRIBUTES: ${{ vars.OTEL_RESOURCE_ATTRIBUTES }}
       OTEL_SERVICE_NAME: ${{ vars.OTEL_SERVICE_NAME }}
       PEOPLELOOKUP_IAMKEY: ${{ secrets.PEOPLELOOKUP_IAMKEY }}
+      PEOPLELOOKUP_ROSETTABATCHSIZE: ${{ vars.PEOPLELOOKUP_ROSETTABATCHSIZE || '50' }}
       PEOPLELOOKUP_SENSITIVEINFOUSERS: ${{ vars.PEOPLELOOKUP_SENSITIVEINFOUSERS }}
       ROSETTACLIENT__BASEURL: ${{ vars.ROSETTACLIENT__BASEURL }}
       ROSETTACLIENT__CLIENTID: ${{ vars.ROSETTACLIENT__CLIENTID }}
@@ -131,6 +132,11 @@ jobs:
 
           if (( ${#missing[@]} > 0 )); then
             printf 'Missing required GitHub Environment value(s): %s\n' "${missing[*]}"
+            exit 1
+          fi
+
+          if [[ ! "$PEOPLELOOKUP_ROSETTABATCHSIZE" =~ ^[1-9][0-9]{0,9}$ ]] || (( PEOPLELOOKUP_ROSETTABATCHSIZE > 2147483647 )); then
+            echo "PEOPLELOOKUP_ROSETTABATCHSIZE must be an integer between 1 and 2147483647 without leading zeros."
             exit 1
           fi
 
@@ -222,6 +228,7 @@ jobs:
           add_param "authInstance" "$AUTH_INSTANCE"
           add_param "authCallbackPath" "$AUTH_CALLBACK_PATH"
           add_param "peopleLookupIamKey" "$PEOPLELOOKUP_IAMKEY"
+          add_param "peopleLookupRosettaBatchSize" "$PEOPLELOOKUP_ROSETTABATCHSIZE"
           add_param "useRosettaLookup" "$USEROSETTALOOKUP"
           add_param "rosettaClientBaseUrl" "$ROSETTACLIENT__BASEURL"
           add_param "rosettaClientId" "$ROSETTACLIENT__CLIENTID"
@@ -289,6 +296,7 @@ jobs:
           add_setting "Auth__Instance" "$AUTH_INSTANCE"
           add_setting "Auth__CallbackPath" "$AUTH_CALLBACK_PATH"
           add_setting "PeopleLookup__IamKey" "$PEOPLELOOKUP_IAMKEY"
+          add_setting "PeopleLookup__RosettaBatchSize" "$PEOPLELOOKUP_ROSETTABATCHSIZE"
           add_setting "PeopleLookup__SensitiveInfoUsers" "$PEOPLELOOKUP_SENSITIVEINFOUSERS"
           add_setting "UseRosettaLookup" "$USEROSETTALOOKUP"
           add_setting "RosettaClient__BaseUrl" "$ROSETTACLIENT__BASEURL"

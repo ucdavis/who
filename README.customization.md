@@ -42,6 +42,8 @@ The IAM lookup requires configuration from environment variables or `server/.env
 
 `PeopleLookup__SensitiveInfoUsers` accepts comma, semicolon, or newline separated IAM IDs. A user's `ucdPersonIAMID` claim must match a configured IAM ID to see sensitive identifier fields and use sensitive searches.
 
+`PeopleLookup__RosettaBatchSize` controls the number of search values in each Rosetta request. It defaults to `50` and accepts a positive integer from `1` to `2147483647`. Set this runtime key for local app development; Azure deployments use `PEOPLELOOKUP_ROSETTABATCHSIZE` as described below.
+
 ## Telemetry
 
 Optional OpenTelemetry settings are documented in `server/.env.example`:
@@ -73,11 +75,14 @@ Optional environment variables:
 - App identity and location: `APP_NAME`, `AZURE_LOCATION`
 - Existing infrastructure deploys: `WEB_APP_NAME`
 - Auth overrides: `AUTH_INSTANCE`, `AUTH_CALLBACK_PATH`
+- Rosetta batch size: `PEOPLELOOKUP_ROSETTABATCHSIZE` (default: `50`)
 - Rosetta client: `USEROSETTALOOKUP`, `ROSETTACLIENT__BASEURL`, `ROSETTACLIENT__CLIENTID`, `ROSETTACLIENT__SCOPE`, `ROSETTACLIENT__TOKENURL`
 - Rosetta client secret: `ROSETTACLIENT__CLIENTSECRET`
 - Observability: `OTEL_EXPORTER_OTLP_ENDPOINT`, `OTEL_EXPORTER_OTLP_PROTOCOL`, `OTEL_SERVICE_NAME`, `OTEL_RESOURCE_ATTRIBUTES`
 - Observability secret: `OTEL_EXPORTER_OTLP_HEADERS`
 - Existing App Service plan overrides: `WEB_PLAN_NAME`, `WEB_PLAN_RESOURCE_GROUP`
+
+To override the Rosetta batch size, add the non-secret variable `PEOPLELOOKUP_ROSETTABATCHSIZE` to the `test` and `prod` GitHub Environments with each environment's desired value. Use an integer from `1` to `2147483647` without leading zeros. The workflow maps it to `PeopleLookup__RosettaBatchSize` in App Service and uses `50` when omitted or empty, including deployments with `deploy_infra=false`.
 
 ### One-time OIDC bootstrap
 
@@ -169,6 +174,8 @@ export AZURE_SUBSCRIPTION_ID="<subscription-id>"
 export PEOPLELOOKUP_IAMKEY="<iamws-api-key>"
 infrastructure/azure/deploy_test.sh
 ```
+
+The local deployment scripts also accept `PEOPLELOOKUP_ROSETTABATCHSIZE` and use the same validation and default of `50`, including when `DEPLOY_INFRA=false`.
 
 Use `infrastructure/azure/deploy_prod.sh` for production. For existing infrastructure, run:
 

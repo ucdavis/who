@@ -225,6 +225,9 @@ public class RosettaIdentityLookupService : IIdentityLookupService, IBulkIdentit
             case BulkPeopleSearchField.MothraId:
                 request.Mothraids = batch;
                 break;
+            case BulkPeopleSearchField.PpsId:
+                request.Ppsids = batch;
+                break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(searchField), searchField, "Unsupported bulk search field.");
         }
@@ -251,6 +254,8 @@ public class RosettaIdentityLookupService : IIdentityLookupService, IBulkIdentit
                 return NormalizeValues(person.Id?.Student_id);
             case BulkPeopleSearchField.MothraId:
                 return NormalizeValues(person.Id?.Mothra_id);
+            case BulkPeopleSearchField.PpsId:
+                return NormalizeValues(person.Id?.Pps_id);
             default:
                 throw new ArgumentOutOfRangeException(nameof(searchField), searchField, "Unsupported bulk search field.");
         }

@@ -52,6 +52,11 @@ param authCallbackPath string = '/signin-oidc'
 @description('IAM people lookup API key.')
 param peopleLookupIamKey string
 
+@minValue(1)
+@maxValue(2147483647)
+@description('Maximum number of search values per Rosetta batch lookup request.')
+param peopleLookupRosettaBatchSize int = 50
+
 @description('Whether Rosetta should provide people lookup data.')
 param useRosettaLookup string = ''
 
@@ -148,6 +153,7 @@ module compute 'modules/compute.bicep' = if (deploymentGuardPassed) {
     authInstance: authInstance
     authCallbackPath: authCallbackPath
     peopleLookupIamKey: peopleLookupIamKey
+    peopleLookupRosettaBatchSize: peopleLookupRosettaBatchSize
     useRosettaLookup: useRosettaLookup
     rosettaClientBaseUrl: rosettaClientBaseUrl
     rosettaClientId: rosettaClientId

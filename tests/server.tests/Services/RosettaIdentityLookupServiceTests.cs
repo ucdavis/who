@@ -132,6 +132,36 @@ public class RosettaIdentityLookupServiceTests
         results.Should().OnlyContain(result => result.Found);
     }
 
+    [Fact]
+    public async Task LookupMany_posts_105_pps_ids_in_three_batches_and_preserves_identifiers_and_order()
+    {
+        var handler = new PeoplePostHandler();
+        using var restClient = new HttpClient(handler);
+        using var graphQlClient = new HttpClient(new PeoplePostHandler())
+        {
+            BaseAddress = new Uri("https://example.test/api/v1/graphql")
+        };
+        using var rosettaClient = new RosettaClient(restClient, graphQlClient, CreateRosettaOptions());
+        var service = new RosettaIdentityLookupService(
+            rosettaClient,
+            Options.Create(new PeopleLookupOptions()));
+        var ppsIds = Enumerable.Range(1, 105)
+            .Select(id => id.ToString("D9", CultureInfo.InvariantCulture))
+            .ToArray();
+
+        var results = await service.LookupMany(BulkPeopleSearchField.PpsId, ppsIds);
+
+        handler.Requests.Should().HaveCount(3);
+        handler.Requests.Should().OnlyContain(request => request.FilterName == "ppsids");
+        handler.Requests.Select(request => request.Ids.Length).Should().Equal(50, 50, 5);
+        handler.Requests.SelectMany(request => request.Ids).Should().Equal(ppsIds);
+        handler.Requests.Select(request => request.Limit).Should().Equal(50, 50, 5);
+        handler.Requests.Should().OnlyContain(request => request.Count == false && request.Offset == 0);
+        results.Select(result => result.SearchValue).Should().Equal(ppsIds);
+        results.Select(result => result.PpsId).Should().Equal(ppsIds);
+        results.Should().OnlyContain(result => result.Found && result.ErrorMessage == null);
+    }
+
     [Theory]
     [InlineData(BulkPeopleSearchField.StudentId, "studentids")]
     [InlineData(BulkPeopleSearchField.MothraId, "mothraids")]
@@ -274,7 +304,7 @@ public class RosettaIdentityLookupServiceTests
             var body = await request.Content!.ReadAsStringAsync(cancellationToken);
             using var document = JsonDocument.Parse(body);
             var root = document.RootElement;
-            var filterName = new[] { "emails", "loginids", "iamids", "employeeids", "studentids", "mothraids" }
+            var filterName = new[] { "emails", "loginids", "iamids", "employeeids", "studentids", "mothraids", "ppsids" }
                 .Single(name => root.TryGetProperty(name, out _));
             var idsElement = root.GetProperty(filterName);
 
@@ -338,6 +368,7 @@ public class RosettaIdentityLookupServiceTests
                     "employeeids" => new Dictionary<string, string> { ["employee_id"] = id },
                     "studentids" => new Dictionary<string, string> { ["student_id"] = id },
                     "mothraids" => new Dictionary<string, string> { ["mothra_id"] = id },
+                    "ppsids" => new Dictionary<string, string> { ["pps_id"] = id },
                     _ => throw new InvalidOperationException($"Unsupported test filter {filterName}.")
                 }
             }));

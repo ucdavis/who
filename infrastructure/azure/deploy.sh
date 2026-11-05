@@ -29,6 +29,7 @@ Existing infrastructure deployments:
 
 Optional app settings use the same names as the GitHub Environment variables:
   AUTH_CLIENT_ID, AUTH_TENANT_ID, AUTH_DOMAIN, AUTH_INSTANCE, AUTH_CALLBACK_PATH,
+  PEOPLELOOKUP_ROSETTABATCHSIZE (positive integer; default: 50),
   USEROSETTALOOKUP, ROSETTACLIENT__BASEURL, ROSETTACLIENT__CLIENTID,
   ROSETTACLIENT__CLIENTSECRET, ROSETTACLIENT__SCOPE, ROSETTACLIENT__TOKENURL,
   OTEL_EXPORTER_OTLP_ENDPOINT, OTEL_EXPORTER_OTLP_PROTOCOL, OTEL_EXPORTER_OTLP_HEADERS,
@@ -100,6 +101,7 @@ RESOURCE_GROUP="${RESOURCE_GROUP:-rg-${APP_NAME}-${DEPLOY_ENV}}"
 DEPLOY_INFRA="${DEPLOY_INFRA:-true}"
 BUILD_APP="${BUILD_APP:-true}"
 RUN_TESTS="${RUN_TESTS:-true}"
+PEOPLELOOKUP_ROSETTABATCHSIZE="${PEOPLELOOKUP_ROSETTABATCHSIZE:-50}"
 PUBLISH_ROOT="${PUBLISH_ROOT:-$repo_root/publish}"
 PUBLISH_WEB_DIR="${PUBLISH_WEB_DIR:-$PUBLISH_ROOT/web}"
 PACKAGE_PATH="${PACKAGE_PATH:-$PUBLISH_ROOT/webapp.zip}"
@@ -110,6 +112,10 @@ case "$DEPLOY_ENV" in
 esac
 
 [[ -n "${PEOPLELOOKUP_IAMKEY:-}" ]] || die "PEOPLELOOKUP_IAMKEY is required for deployments."
+
+if [[ ! "$PEOPLELOOKUP_ROSETTABATCHSIZE" =~ ^[1-9][0-9]{0,9}$ ]] || (( PEOPLELOOKUP_ROSETTABATCHSIZE > 2147483647 )); then
+  die "PEOPLELOOKUP_ROSETTABATCHSIZE must be an integer from 1 to 2147483647 without leading zeros."
+fi
 
 resource_group_lower="$(lower "$RESOURCE_GROUP")"
 expected_suffix="-$DEPLOY_ENV"
@@ -194,6 +200,7 @@ if is_true "$DEPLOY_INFRA"; then
   add_param "authInstance" "${AUTH_INSTANCE:-}"
   add_param "authCallbackPath" "${AUTH_CALLBACK_PATH:-}"
   add_param "peopleLookupIamKey" "${PEOPLELOOKUP_IAMKEY:-}"
+  add_param "peopleLookupRosettaBatchSize" "$PEOPLELOOKUP_ROSETTABATCHSIZE"
   add_param "useRosettaLookup" "${USEROSETTALOOKUP:-}"
   add_param "rosettaClientBaseUrl" "${ROSETTACLIENT__BASEURL:-}"
   add_param "rosettaClientId" "${ROSETTACLIENT__CLIENTID:-}"
@@ -248,6 +255,7 @@ add_setting "Auth__Domain" "${AUTH_DOMAIN:-}"
 add_setting "Auth__Instance" "${AUTH_INSTANCE:-}"
 add_setting "Auth__CallbackPath" "${AUTH_CALLBACK_PATH:-}"
 add_setting "PeopleLookup__IamKey" "${PEOPLELOOKUP_IAMKEY:-}"
+add_setting "PeopleLookup__RosettaBatchSize" "$PEOPLELOOKUP_ROSETTABATCHSIZE"
 add_setting "UseRosettaLookup" "${USEROSETTALOOKUP:-}"
 add_setting "RosettaClient__BaseUrl" "${ROSETTACLIENT__BASEURL:-}"
 add_setting "RosettaClient__ClientId" "${ROSETTACLIENT__CLIENTID:-}"

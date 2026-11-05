@@ -130,9 +130,25 @@ public class PeopleLookupControllerTests
     }
 
     [Fact]
-    public async Task Search_keeps_pps_id_on_individual_lookup_when_bulk_is_supported()
+    public async Task Search_uses_bulk_lookup_for_pps_ids_when_supported()
     {
         var identityLookupService = new FakeBulkIdentityLookupService();
+        var controller = CreateController(identityLookupService, allowSensitiveInfo: true);
+
+        var response = await Search(controller, new BulkPeopleLookupRequest
+        {
+            SearchText = "012345678, 987654321",
+            SearchType = "ppsId",
+        });
+
+        response.Results.Select(result => result.SearchValue).Should().Equal("012345678", "987654321");
+        identityLookupService.Calls.Should().Equal("LookupMany:PpsId:012345678,987654321");
+    }
+
+    [Fact]
+    public async Task Search_uses_individual_lookups_for_pps_ids_when_bulk_is_not_supported()
+    {
+        var identityLookupService = new FakeIdentityLookupService();
         var controller = CreateController(identityLookupService, allowSensitiveInfo: true);
 
         await Search(controller, new BulkPeopleLookupRequest
@@ -144,6 +160,23 @@ public class PeopleLookupControllerTests
         identityLookupService.Calls.Should().Equal(
             "LookupId:ppsId:123456789",
             "LookupId:ppsId:987654321");
+    }
+
+    [Fact]
+    public async Task Search_blocks_bulk_pps_id_lookup_when_unauthorized()
+    {
+        var identityLookupService = new FakeBulkIdentityLookupService();
+        var controller = CreateController(identityLookupService, allowSensitiveInfo: false);
+
+        var response = await Search(controller, new BulkPeopleLookupRequest
+        {
+            SearchText = "123456789, 987654321",
+            SearchType = "ppsId",
+        });
+
+        response.Message.Should().Be("Sensitive identifier searches were ignored for your account.");
+        response.Results.Should().BeEmpty();
+        identityLookupService.Calls.Should().BeEmpty();
     }
 
     [Fact]

@@ -44,6 +44,11 @@ param authCallbackPath string
 @description('IAM people lookup API key.')
 param peopleLookupIamKey string
 
+@minValue(1)
+@maxValue(2147483647)
+@description('Maximum number of search values per Rosetta batch lookup request.')
+param peopleLookupRosettaBatchSize int
+
 @description('Whether Rosetta should provide people lookup data.')
 param useRosettaLookup string
 
@@ -123,6 +128,10 @@ var baseAppSettings = [
   {
     name: 'PeopleLookup__IamKey'
     value: peopleLookupIamKey
+  }
+  {
+    name: 'PeopleLookup__RosettaBatchSize'
+    value: string(peopleLookupRosettaBatchSize)
   }
 ]
 

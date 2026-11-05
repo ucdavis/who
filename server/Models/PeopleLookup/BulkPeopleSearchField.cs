@@ -7,5 +7,6 @@ public enum BulkPeopleSearchField
     IamId,
     EmployeeId,
     StudentId,
-    MothraId
+    MothraId,
+    PpsId
 }

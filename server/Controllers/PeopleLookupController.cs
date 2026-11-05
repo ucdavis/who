@@ -131,9 +131,10 @@ public partial class PeopleLookupController : ApiControllerBase
                     response.Results);
                 break;
             case SearchTypePpsId:
-                await AddLookupMatches(
+                await AddProviderLookupMatches(
                     searchText,
                     NumericIdRegex(),
+                    BulkPeopleSearchField.PpsId,
                     value => _identityLookupService.LookupId(PeopleSearchField.ppsId, value),
                     allowSensitiveInfo,
                     response.Results);

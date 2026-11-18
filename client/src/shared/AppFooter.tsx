@@ -52,7 +52,7 @@ export function AppFooter() {
               src="/ucdavis.svg"
             />
           </a>
-          <div className="mt-2 flex items-center justify-center text-sm text-base-content/70">
+          <div className="mt-2 flex flex-wrap items-center justify-center gap-y-1 px-1 text-sm text-base-content/75">
             <button
               aria-label={`Switch to ${isDark ? 'light' : 'dark'} mode`}
               className="btn btn-ghost btn-circle btn-xs me-1"
@@ -69,14 +69,24 @@ export function AppFooter() {
             >
               CRU
             </a>
-            <span className="mx-2 text-base-content/40">|</span>
+            <span
+              aria-hidden="true"
+              className="mx-1 text-base-content/40 sm:mx-2"
+            >
+              |
+            </span>
             <span>powered by</span>
             {appInfo && (
               <span className="badge badge-primary badge-soft badge-sm ms-1">
                 {appInfo.provider}
               </span>
             )}
-            <span className="mx-2 text-base-content/40">|</span>
+            <span
+              aria-hidden="true"
+              className="mx-1 text-base-content/40 sm:mx-2"
+            >
+              |
+            </span>
             <a
               className="underline"
               href="https://caeshelp.ucdavis.edu/?appname=WHO"
@@ -86,11 +96,9 @@ export function AppFooter() {
               Help
             </a>
           </div>
-          <p
-            aria-label={`Application version ${packageJson.version}`}
-            className="absolute top-full mt-1 w-full text-center text-xs tracking-wide text-base-content/40"
-          >
-            v{packageJson.version}
+          <p className="absolute top-full mt-1 w-full text-center text-xs tracking-wide text-base-content/75">
+            <span className="sr-only">Application version</span> v
+            {packageJson.version}
           </p>
         </div>
       </div>

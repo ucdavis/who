@@ -23,7 +23,8 @@ export const Route = createFileRoute('/(authenticated)')({
 function AuthenticatedRouteError({ error }: ErrorComponentProps<unknown>) {
   if (error instanceof HttpError && error.status === 403) {
     return (
-      <main className="flex items-center justify-center px-4 py-12">
+      <div className="flex items-center justify-center px-4 py-12">
+        <title>Access unavailable | Who</title>
         <section className="max-w-lg text-center">
           <h1 className="text-3xl font-bold text-base-content">
             Access unavailable
@@ -36,12 +37,13 @@ function AuthenticatedRouteError({ error }: ErrorComponentProps<unknown>) {
             Sign in with a different account
           </a>
         </section>
-      </main>
+      </div>
     );
   }
 
   return (
-    <main className="flex items-center justify-center px-4 py-12">
+    <div className="flex items-center justify-center px-4 py-12">
+      <title>Page unavailable | Who</title>
       <section className="max-w-lg text-center">
         <h1 className="text-3xl font-bold text-base-content">
           We could not load this page
@@ -50,6 +52,6 @@ function AuthenticatedRouteError({ error }: ErrorComponentProps<unknown>) {
           Refresh the page or try again later.
         </p>
       </section>
-    </main>
+    </div>
   );
 }

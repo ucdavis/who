@@ -1,10 +1,8 @@
-import { fireEvent, screen, waitFor } from '@testing-library/react';
+import { fireEvent, screen, waitFor, within } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 import { http, HttpResponse } from 'msw';
-import {
-  detectSearchTypeFromText,
-} from '@/routes/(authenticated)/index.tsx';
+import { detectSearchTypeFromText } from '@/routes/(authenticated)/index.tsx';
 import { getPeopleDetailHref } from '@/shared/peopleLookupDetails.tsx';
 import { server } from '@/test/mswUtils.ts';
 import { renderRoute } from '@/test/routerUtils.tsx';
@@ -114,7 +112,8 @@ describe('people lookup detail links', () => {
     });
 
     try {
-      await screen.findByRole('heading', { name: 'Jason Sylvestre' });
+      await screen.findByRole('heading', { level: 1, name: 'Jason Sylvestre' });
+      expect(document.title).toBe('Person details for Jason Sylvestre | Who');
       expect(requestedId).toBe('jsylvestre@ucdavis.edu');
     } finally {
       cleanup();
@@ -152,6 +151,7 @@ describe('single user lookup not-found state', () => {
       const notFoundMessage = await screen.findByText('User not found.');
       const alert = notFoundMessage.closest('.alert');
 
+      expect(notFoundMessage.closest('[role="status"]')).toBeInTheDocument();
       expect(alert).toHaveClass('alert-error', 'alert-soft');
       expect(alert).not.toHaveClass('alert-warning');
     } finally {
@@ -203,7 +203,7 @@ describe('people lookup clear button', () => {
 });
 
 describe('people lookup keyboard interactions', () => {
-  it('focuses the single-user field, tabs to Values, and opens details on Enter', async () => {
+  it('tabs through the form in order and opens single-user details on Enter', async () => {
     server.use(
       http.get('/api/user/me', () =>
         HttpResponse.json({
@@ -230,14 +230,28 @@ describe('people lookup keyboard interactions', () => {
       const singleUserField = screen.getByRole('textbox', {
         name: 'Single user lookup',
       });
-      expect(singleUserField).toHaveFocus();
-
+      expect(document.title).toBe('Bulk User Lookup | Who');
       await user.tab();
-
+      expect(screen.getByRole('radio', { name: 'Email' })).toHaveFocus();
+      await user.tab();
       expect(screen.getByLabelText('Values')).toHaveFocus();
 
-      await user.click(singleUserField);
-      await user.type(singleUserField, 'kirkland{Enter}');
+      await user.keyboard('sample');
+      await user.tab();
+      expect(
+        screen.getByRole('button', { name: 'Lookup Users' })
+      ).toHaveFocus();
+      await user.tab();
+      expect(screen.getByRole('button', { name: 'Clear' })).toHaveFocus();
+      await user.tab();
+      expect(singleUserField).toHaveFocus();
+      await user.keyboard('kirkland');
+      await user.tab();
+      expect(
+        screen.getByRole('button', { name: 'Open Details' })
+      ).toHaveFocus();
+      await user.tab({ shift: true });
+      await user.keyboard('{Enter}');
 
       await waitFor(() =>
         expect(router.state.location.pathname).toBe('/detail/kirkland')
@@ -268,21 +282,20 @@ describe('people lookup keyboard interactions', () => {
       await screen.findByRole('heading', { name: 'Bulk User Lookup' });
       const singleUserField = screen.getByLabelText('Single user lookup');
 
-      expect(singleUserField).toHaveFocus();
+      singleUserField.focus();
 
       fireEvent.keyDown(singleUserField, { key: 'k' });
 
-      expect(screen.getByRole('tab', { name: 'Email' })).toHaveAttribute(
-        'aria-selected',
-        'true'
-      );
+      expect(screen.getByRole('radio', { name: 'Email' })).toBeChecked();
 
       fireEvent.keyDown(singleUserField, { ctrlKey: true, key: 'k' });
 
-      const kerberosTab = screen.getByRole('tab', { name: 'Kerberos ID' });
-      expect(kerberosTab).toHaveAttribute('aria-selected', 'true');
-      expect(kerberosTab).toHaveAttribute('aria-keyshortcuts', 'Control+K');
-      expect(kerberosTab.querySelector('.underline')).toHaveTextContent('K');
+      const kerberosRadio = screen.getByRole('radio', { name: 'Kerberos ID' });
+      expect(kerberosRadio).toBeChecked();
+      expect(kerberosRadio).toHaveAttribute('aria-keyshortcuts', 'Control+K');
+      expect(
+        kerberosRadio.closest('label')?.querySelector('.underline')
+      ).toHaveTextContent('K');
       expect(singleUserField).toHaveFocus();
     } finally {
       cleanup();
@@ -316,15 +329,20 @@ describe('people lookup keyboard interactions', () => {
     const { cleanup } = renderRoute({ initialPath: '/' });
 
     try {
-      const mothraTab = await screen.findByRole('tab', { name: 'MOTHRA ID' });
+      const mothraRadio = await screen.findByRole('radio', {
+        name: 'MOTHRA ID',
+      });
       const singleUserField = screen.getByLabelText('Single user lookup');
+      singleUserField.focus();
 
-      expect(mothraTab).toHaveAttribute('aria-keyshortcuts', 'Control+T');
-      expect(mothraTab.querySelector('.underline')).toHaveTextContent('T');
+      expect(mothraRadio).toHaveAttribute('aria-keyshortcuts', 'Control+T');
+      expect(
+        mothraRadio.closest('label')?.querySelector('.underline')
+      ).toHaveTextContent('T');
 
       fireEvent.keyDown(singleUserField, { ctrlKey: true, key: 't' });
 
-      expect(mothraTab).toHaveAttribute('aria-selected', 'true');
+      expect(mothraRadio).toBeChecked();
       expect(singleUserField).toHaveFocus();
 
       fireEvent.input(screen.getByLabelText('Values'), {
@@ -362,10 +380,10 @@ describe('people lookup keyboard interactions', () => {
     const { cleanup } = renderRoute({ initialPath: '/' });
 
     try {
-      await screen.findByRole('tab', { name: 'Employee ID' });
+      await screen.findByRole('radio', { name: 'Employee ID' });
 
       expect(
-        screen.queryByRole('tab', { name: 'MOTHRA ID' })
+        screen.queryByRole('radio', { name: 'MOTHRA ID' })
       ).not.toBeInTheDocument();
     } finally {
       cleanup();
@@ -457,12 +475,68 @@ describe('people lookup empty state', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Lookup Users' }));
 
       const emptyState = await screen.findByRole('status');
-      expect(emptyState).toHaveTextContent('No results found.');
+      await waitFor(() =>
+        expect(emptyState).toHaveTextContent('No results found.')
+      );
       expect(emptyState).not.toHaveClass('alert-info');
       expect(
         screen.queryByRole('heading', { name: 'Results' })
       ).not.toBeInTheDocument();
       expect(screen.queryByRole('table')).not.toBeInTheDocument();
+    } finally {
+      cleanup();
+    }
+  });
+});
+
+describe('keyboard access to lookup results', () => {
+  it('exposes row details and supports sorting, filtering, and clearing by keyboard', async () => {
+    server.use(
+      http.get('/api/user/me', () =>
+        HttpResponse.json({ id: 'test', roles: [] })
+      ),
+      http.get('/api/peoplelookup/options', () =>
+        HttpResponse.json({ allowSensitiveInfo: false })
+      ),
+      http.post('/api/peoplelookup/search', () =>
+        HttpResponse.json({
+          allowSensitiveInfo: false,
+          results: [
+            { displayName: 'Zoe Example', found: true, searchValue: 'zoe' },
+            { displayName: 'Amy Example', found: true, searchValue: 'amy' },
+          ],
+        })
+      )
+    );
+    const user = userEvent.setup();
+    const { cleanup } = renderRoute();
+    try {
+      await user.type(await screen.findByLabelText('Values'), 'zoe,amy');
+      await user.keyboard('{Control>}{Enter}{/Control}');
+      const table = await screen.findByRole('table');
+      const sort = within(table).getByRole('button', {
+        name: 'Sort by Display Name',
+      });
+      sort.focus();
+      await user.keyboard('{Enter}');
+      expect(sort.closest('th')).toHaveAttribute('aria-sort', 'ascending');
+      const rows = within(table).getAllByRole('row');
+      expect(
+        within(rows[1]).getByRole('button', { name: 'Details for Amy Example' })
+      ).toBeEnabled();
+
+      const filter = screen.getByRole('textbox', { name: 'Filter results' });
+      await user.type(filter, 'no matches');
+      expect(
+        screen.getByText(/Showing 0-0 of 0/).closest('[role="status"]')
+      ).toBeInTheDocument();
+      await user.tab();
+      expect(
+        screen.getByRole('button', { name: 'Clear results filter' })
+      ).toHaveFocus();
+      await user.keyboard('{Enter}');
+      expect(filter).toHaveFocus();
+      expect(within(table).getAllByRole('row')).toHaveLength(3);
     } finally {
       cleanup();
     }

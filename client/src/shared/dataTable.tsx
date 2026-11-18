@@ -1,6 +1,6 @@
 'use no memo';
 
-import type { ReactNode } from 'react';
+import { type ReactNode, useId, useRef } from 'react';
 import {
   ColumnDef,
   flexRender,
@@ -21,6 +21,7 @@ interface DataTableProps<TData extends object> {
   columns: ColumnDef<TData>[];
   data: TData[];
   filterPlaceholder?: string;
+  getRowLabel?: (row: TData) => string;
   globalFilter?: 'left' | 'right' | 'none'; // Controls the position of the search box
   initialState?: InitialTableState; // Optional initial state for the table, use for stuff like setting page size or sorting
   onRowClick?: (row: TData) => void;
@@ -32,12 +33,15 @@ export const DataTable = <TData extends object>({
   columns,
   data,
   filterPlaceholder = 'Search all columns...',
+  getRowLabel,
   globalFilter = 'right',
   initialState,
   onRowClick,
   rowClassName,
   tableActions,
 }: DataTableProps<TData>) => {
+  const filterId = useId();
+  const filterInput = useRef<HTMLInputElement>(null);
   // see note in https://tanstack.com/table/latest/docs/installation#react-table.  Added "use no memo" just to be safe but it's unnecessary.
   // once tanstack updates their docs and makes sure it works w/ react compiler (even though we aren't using it yet), we can remove this comment
   // eslint-disable-next-line react-hooks/incompatible-library
@@ -55,47 +59,43 @@ export const DataTable = <TData extends object>({
 
   const filterControl =
     globalFilter === 'none' ? null : (
-      <label className="input input-bordered flex items-center gap-2 w-full max-w-sm">
-        <svg
-          className="h-[1em] opacity-50"
-          viewBox="0 0 24 24"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <g
-            fill="none"
-            stroke="currentColor"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="2.5"
-          >
-            <circle cx="11" cy="11" r="8"></circle>
-            <path d="m21 21-4.3-4.3"></path>
-          </g>
-        </svg>
-        <input
-          className="grow"
-          onChange={(e) => table.setGlobalFilter(e.target.value)}
-          placeholder={filterPlaceholder}
-          type="text"
-          value={table.getState().globalFilter ?? ''}
-        />
-        {table.getState().globalFilter && (
-          <button
-            className="btn btn-ghost btn-sm btn-circle"
-            onClick={() => table.setGlobalFilter('')}
-            type="button"
-          >
-            <svg
-              className="h-4 w-4"
-              fill="currentColor"
-              viewBox="0 0 16 16"
-              xmlns="http://www.w3.org/2000/svg"
+      <div className="grid w-full max-w-sm gap-1">
+        <label className="text-sm font-medium" htmlFor={filterId}>
+          Filter results
+        </label>
+        <div className="input input-bordered flex w-full items-center gap-2">
+          <input
+            className="min-w-0 grow"
+            id={filterId}
+            onChange={(e) => table.setGlobalFilter(e.target.value)}
+            placeholder={filterPlaceholder}
+            ref={filterInput}
+            type="text"
+            value={table.getState().globalFilter ?? ''}
+          />
+          {table.getState().globalFilter && (
+            <button
+              aria-label="Clear results filter"
+              className="btn btn-ghost btn-sm btn-circle"
+              onClick={() => {
+                table.setGlobalFilter('');
+                filterInput.current?.focus();
+              }}
+              type="button"
             >
-              <path d="M5.28 4.22a.75.75 0 0 0-1.06 1.06L6.94 8l-2.72 2.72a.75.75 0 1 0 1.06 1.06L8 9.06l2.72 2.72a.75.75 0 1 0 1.06-1.06L9.06 8l2.72-2.72a.75.75 0 0 0-1.06-1.06L8 6.94 5.28 4.22Z" />
-            </svg>
-          </button>
-        )}
-      </label>
+              <svg
+                aria-hidden="true"
+                className="h-4 w-4"
+                fill="currentColor"
+                viewBox="0 0 16 16"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path d="M5.28 4.22a.75.75 0 0 0-1.06 1.06L6.94 8l-2.72 2.72a.75.75 0 1 0 1.06 1.06L8 9.06l2.72 2.72a.75.75 0 1 0 1.06-1.06L9.06 8l2.72-2.72a.75.75 0 0 0-1.06-1.06L8 6.94 5.28 4.22Z" />
+              </svg>
+            </button>
+          )}
+        </div>
+      </div>
     );
 
   const resolvedTableActions =
@@ -125,7 +125,7 @@ export const DataTable = <TData extends object>({
   return (
     <div className="space-y-4">
       {hasToolbar && (
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           {toolbarItems.map((item, index) =>
             item ? <div key={index}>{item}</div> : null
           )}
@@ -136,11 +136,22 @@ export const DataTable = <TData extends object>({
         {' '}
         {/* enables horizontal scroll on small screens */}
         <table className="table table-zebra w-full">
-          <thead>
+          <thead className="text-base-content">
             {table.getHeaderGroups().map((headerGroup) => (
               <tr key={headerGroup.id}>
+                {onRowClick && headerGroup.depth === 0 && (
+                  <th rowSpan={table.getHeaderGroups().length} scope="col">
+                    Details
+                  </th>
+                )}
                 {headerGroup.headers.map((header) => {
                   const sortDirection = header.column.getIsSorted();
+                  const label = header.isPlaceholder
+                    ? null
+                    : flexRender(
+                        header.column.columnDef.header,
+                        header.getContext()
+                      );
 
                   return (
                     <th
@@ -151,37 +162,38 @@ export const DataTable = <TData extends object>({
                             ? 'descending'
                             : undefined
                       }
-                      className="cursor-pointer select-none"
+                      colSpan={header.colSpan}
                       key={header.id}
-                      onClick={header.column.getToggleSortingHandler?.()}
+                      scope={header.subHeaders.length ? 'colgroup' : 'col'}
                     >
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                      {sortDirection ? (
-                        <svg
-                          aria-hidden="true"
-                          className="ml-1 inline-block h-4 w-4 align-text-bottom"
-                          fill="none"
-                          viewBox="0 0 20 20"
-                          xmlns="http://www.w3.org/2000/svg"
+                      {label && header.column.getCanSort() ? (
+                        <button
+                          className="inline-flex min-h-8 cursor-pointer items-center gap-1 rounded-sm text-start hover:underline focus-visible:outline-2 focus-visible:outline-offset-2"
+                          onClick={header.column.getToggleSortingHandler()}
+                          type="button"
                         >
-                          <path
-                            d={
-                              sortDirection === 'asc'
-                                ? 'm5 12.5 5-5 5 5'
-                                : 'm5 7.5 5 5 5-5'
-                            }
+                          <span className="sr-only">Sort by</span> {label}
+                          <svg
+                            aria-hidden="true"
+                            className="size-4 shrink-0"
+                            fill="none"
                             stroke="currentColor"
                             strokeLinecap="round"
                             strokeLinejoin="round"
-                            strokeWidth="2"
-                          />
-                        </svg>
-                      ) : null}
+                            strokeWidth="1.75"
+                            viewBox="0 0 20 20"
+                          >
+                            {sortDirection !== 'desc' && (
+                              <path d="m6 8 4-4 4 4" />
+                            )}
+                            {sortDirection !== 'asc' && (
+                              <path d="m6 12 4 4 4-4" />
+                            )}
+                          </svg>
+                        </button>
+                      ) : (
+                        label
+                      )}
                     </th>
                   );
                 })}
@@ -211,9 +223,27 @@ export const DataTable = <TData extends object>({
                       return;
                     }
 
-                    onRowClick(row.original);
+                    event.currentTarget
+                      .querySelector<HTMLButtonElement>('[data-row-details]')
+                      ?.click();
                   }}
                 >
+                  {onRowClick && (
+                    <td>
+                      <button
+                        aria-label={`Details for ${getRowLabel?.(row.original) || `row ${row.index + 1}`}`}
+                        className="btn btn-outline btn-primary btn-sm"
+                        data-row-details=""
+                        onClick={(event) => {
+                          event.currentTarget.focus({ preventScroll: true });
+                          onRowClick(row.original);
+                        }}
+                        type="button"
+                      >
+                        Details
+                      </button>
+                    </td>
+                  )}
                   {row.getVisibleCells().map((cell) => (
                     <td key={cell.id}>
                       {flexRender(
@@ -228,7 +258,11 @@ export const DataTable = <TData extends object>({
           </tbody>
         </table>
         <div className="flex flex-col gap-3 border-t border-base-300 py-3 text-sm sm:flex-row sm:items-center sm:justify-between">
-          <div className="space-y-1 text-base-content/70">
+          <div
+            aria-atomic="true"
+            className="space-y-1 text-base-content/80"
+            role="status"
+          >
             <div>
               Showing {firstVisibleRow}-{lastVisibleRow} of {filteredRowCount}{' '}
               {isFiltered

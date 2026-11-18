@@ -8,9 +8,7 @@ import { AppFooter } from '@/shared/AppFooter.tsx';
 import { server } from '@/test/mswUtils.ts';
 
 const renderFooter = (provider: 'Rosetta' | 'IAM' = 'Rosetta') => {
-  server.use(
-    http.get('/api/app-info', () => HttpResponse.json({ provider }))
-  );
+  server.use(http.get('/api/app-info', () => HttpResponse.json({ provider })));
 
   return render(
     <QueryClientProvider client={new QueryClient()}>
@@ -33,12 +31,12 @@ describe('AppFooter', () => {
       name: 'UC Davis wordmark',
     });
     const helpLink = screen.getByRole('link', { name: 'Help' });
-    const version = screen.getByLabelText(
-      `Application version ${packageJson.version}`
-    );
+    const version = screen.getByText(`v${packageJson.version}`);
 
     expect(wordmarkLink).toHaveClass('self-center');
-    expect(version).toHaveTextContent(`v${packageJson.version}`);
+    expect(version).toHaveTextContent(
+      `Application version v${packageJson.version}`
+    );
     expect(version).toHaveClass('absolute', 'top-full');
     expect(version.parentElement).toHaveClass('relative');
     expect(helpLink.compareDocumentPosition(version)).toBe(

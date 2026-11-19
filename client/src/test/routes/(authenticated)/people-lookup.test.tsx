@@ -203,7 +203,7 @@ describe('people lookup clear button', () => {
 });
 
 describe('people lookup keyboard interactions', () => {
-  it('tabs through the form in order and opens single-user details on Enter', async () => {
+  it('tabs from Single user to Values with or without a name and opens details on Enter', async () => {
     server.use(
       http.get('/api/user/me', () =>
         HttpResponse.json({
@@ -230,27 +230,46 @@ describe('people lookup keyboard interactions', () => {
       const singleUserField = screen.getByRole('textbox', {
         name: 'Single user lookup',
       });
+      const valuesField = screen.getByLabelText('Values');
+      const lookupButton = screen.getByRole('button', { name: 'Lookup Users' });
+      const clearButton = screen.getByRole('button', { name: 'Clear' });
+      const openDetailsButton = screen.getByRole('button', {
+        name: 'Open Details',
+      });
+
+      expect(singleUserField).toHaveFocus();
       expect(document.title).toBe('Bulk User Lookup | Who');
       await user.tab();
-      expect(screen.getByRole('radio', { name: 'Email' })).toHaveFocus();
-      await user.tab();
-      expect(screen.getByLabelText('Values')).toHaveFocus();
-
+      expect(valuesField).toHaveFocus();
       await user.keyboard('sample');
-      await user.tab();
-      expect(
-        screen.getByRole('button', { name: 'Lookup Users' })
-      ).toHaveFocus();
-      await user.tab();
-      expect(screen.getByRole('button', { name: 'Clear' })).toHaveFocus();
+      await user.tab({ shift: true });
+      expect(singleUserField).toHaveFocus();
+      await user.tab({ shift: true });
+      expect(screen.getByRole('radio', { name: 'Email' })).toHaveFocus();
       await user.tab();
       expect(singleUserField).toHaveFocus();
       await user.keyboard('kirkland');
+
+      const controlsAfterSingleUser = [
+        valuesField,
+        lookupButton,
+        clearButton,
+        openDetailsButton,
+      ];
+      for (const control of controlsAfterSingleUser) {
+        await user.tab();
+        expect(control).toHaveFocus();
+      }
       await user.tab();
       expect(
-        screen.getByRole('button', { name: 'Open Details' })
+        screen.getByRole('link', { name: 'UC Davis wordmark' })
       ).toHaveFocus();
+      for (const control of [...controlsAfterSingleUser].reverse()) {
+        await user.tab({ shift: true });
+        expect(control).toHaveFocus();
+      }
       await user.tab({ shift: true });
+      expect(singleUserField).toHaveFocus();
       await user.keyboard('{Enter}');
 
       await waitFor(() =>

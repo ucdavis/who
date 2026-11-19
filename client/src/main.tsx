@@ -1,6 +1,10 @@
 import { StrictMode } from 'react';
 import ReactDOM from 'react-dom/client';
-import { RouterProvider, createRouter } from '@tanstack/react-router';
+import {
+  RouterProvider,
+  createRouter,
+  type ParsedLocation,
+} from '@tanstack/react-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import './main.css';
 
@@ -20,7 +24,11 @@ const router = createRouter({
   // Since we're using React Query, we don't want loader calls to ever be stale
   // This will ensure that the loader is always called when the route is preloaded or visited
   defaultPreloadStaleTime: 0,
-  scrollRestoration: true,
+  // Keep the browser's autofocus scroll when the lookup field is below the fold.
+  scrollRestoration: ({ location }: { location: ParsedLocation }) =>
+    location.pathname !== '/' ||
+    Boolean(location.hash) ||
+    document.activeElement?.id !== 'single-user-lookup',
 });
 
 // Register the router instance for type safety

@@ -608,124 +608,119 @@ export function PeopleLookup() {
 
           <section className="card shadow-xl">
             <div className="card-body">
-              <form className="space-y-6" onSubmit={submitLookup}>
-                <div className="space-y-4">
-                  <fieldset className="min-w-0">
-                    <legend className="mb-2 font-medium uppercase">
-                      Search For
-                    </legend>
-                    <div className="flex flex-wrap gap-1 rounded-box bg-base-200 p-1">
-                      {searchOptions.map((option) => {
-                        const shortcutIndex = option.label
-                          .toLowerCase()
-                          .indexOf(option.shortcut);
+              <form
+                className="grid items-center gap-x-2 gap-y-4 sm:grid-cols-[auto_1fr] lg:grid-cols-[1fr_auto_auto]"
+                onSubmit={submitLookup}
+              >
+                <fieldset className="col-span-full row-start-1 min-w-0">
+                  <legend className="mb-2 font-medium uppercase">
+                    Search For
+                  </legend>
+                  <div className="flex flex-wrap gap-1 rounded-box bg-base-200 p-1">
+                    {searchOptions.map((option) => {
+                      const shortcutIndex = option.label
+                        .toLowerCase()
+                        .indexOf(option.shortcut);
 
-                        return (
-                          <label
-                            className="inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-field px-3 text-sm text-base-content hover:bg-base-100 has-checked:bg-base-100 has-checked:font-semibold has-checked:shadow-sm has-focus-visible:outline-2 has-focus-visible:outline-primary"
-                            key={option.value}
-                          >
-                            <input
-                              aria-keyshortcuts={`Control+${option.shortcut.toUpperCase()}`}
-                              aria-label={option.label}
-                              checked={activeSearchType === option.value}
-                              className="size-4 shrink-0 accent-primary"
-                              name="search-type"
-                              onChange={() =>
-                                setSelectedSearchType(option.value)
-                              }
-                              type="radio"
-                              value={option.value}
-                            />
-                            <span>
-                              {option.label.slice(0, shortcutIndex)}
-                              <span className="underline underline-offset-2">
-                                {option.label[shortcutIndex]}
-                              </span>
-                              {option.label.slice(shortcutIndex + 1)}
+                      return (
+                        <label
+                          className="inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-field px-3 text-sm text-base-content hover:bg-base-100 has-checked:bg-base-100 has-checked:font-semibold has-checked:shadow-sm has-focus-visible:outline-2 has-focus-visible:outline-primary"
+                          key={option.value}
+                        >
+                          <input
+                            aria-keyshortcuts={`Control+${option.shortcut.toUpperCase()}`}
+                            aria-label={option.label}
+                            checked={activeSearchType === option.value}
+                            className="size-4 shrink-0 accent-primary"
+                            name="search-type"
+                            onChange={() => setSelectedSearchType(option.value)}
+                            type="radio"
+                            value={option.value}
+                          />
+                          <span>
+                            {option.label.slice(0, shortcutIndex)}
+                            <span className="underline underline-offset-2">
+                              {option.label[shortcutIndex]}
                             </span>
-                          </label>
-                        );
-                      })}
-                    </div>
-                  </fieldset>
-                  <label className="form-control w-full">
-                    <span className="label-text mb-2 font-medium uppercase">
-                      Values
-                    </span>
-                    <textarea
-                      aria-label="Values"
-                      className="textarea textarea-bordered min-h-36 w-full mt-2"
-                      onChange={(event) => setSearchText(event.target.value)}
-                      onKeyDown={submitLookupFromKeyboard}
-                      onPaste={detectSearchTypeForPaste}
-                      placeholder={selectedSearchOption.placeholder}
-                      value={searchText}
-                    />
+                            {option.label.slice(shortcutIndex + 1)}
+                          </span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </fieldset>
+                {/* Keep Single user before Values for Tab and Shift+Tab. */}
+                <div className="col-start-1 row-start-4 flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center lg:col-start-2 lg:row-start-3">
+                  <label
+                    className="text-sm font-medium whitespace-nowrap text-base-content/70"
+                    htmlFor="single-user-lookup"
+                  >
+                    Single user
                   </label>
+                  <input
+                    aria-label="Single user lookup"
+                    autoFocus
+                    className="input input-bordered w-full sm:w-80"
+                    id="single-user-lookup"
+                    onChange={(event) => setSingleLookup(event.target.value)}
+                    onKeyDown={handleSingleLookupKeyDown}
+                    placeholder="Searchable info, Email, kerb, etc."
+                    type="text"
+                    value={singleLookup}
+                  />
                 </div>
+                <label className="form-control col-span-full row-start-2 mb-2 w-full">
+                  <span className="label-text mb-2 font-medium uppercase">
+                    Values
+                  </span>
+                  <textarea
+                    aria-label="Values"
+                    className="textarea textarea-bordered min-h-36 w-full mt-2"
+                    onChange={(event) => setSearchText(event.target.value)}
+                    onKeyDown={submitLookupFromKeyboard}
+                    onPaste={detectSearchTypeForPaste}
+                    placeholder={selectedSearchOption.placeholder}
+                    value={searchText}
+                  />
+                </label>
 
-                <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-                  <div className="flex flex-wrap items-center gap-3">
-                    <button
-                      className="btn btn-primary"
-                      disabled={lookupMutation.isPending || !searchTextValue}
-                      type="submit"
-                    >
-                      {lookupMutation.isPending ? (
-                        <span
-                          aria-hidden="true"
-                          className="loading loading-spinner loading-sm"
-                        />
-                      ) : null}
-                      Lookup Users
-                    </button>
-                    <button
-                      className="btn btn-outline"
-                      disabled={!hasLookupStateToClear}
-                      onClick={() => {
-                        setSearchText('');
-                        setSelectedSearchType(defaultSearchType);
-                        lookupMutation.reset();
-                        setSelectedResult(null);
-                      }}
-                      type="button"
-                    >
-                      Clear
-                    </button>
-                  </div>
-
-                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                    <label
-                      className="text-sm font-medium whitespace-nowrap text-base-content/70"
-                      htmlFor="single-user-lookup"
-                    >
-                      Single user
-                    </label>
-                    <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
-                      <input
-                        aria-label="Single user lookup"
-                        className="input input-bordered w-full sm:w-80"
-                        id="single-user-lookup"
-                        onChange={(event) =>
-                          setSingleLookup(event.target.value)
-                        }
-                        onKeyDown={handleSingleLookupKeyDown}
-                        placeholder="Searchable info, Email, kerb, etc."
-                        type="text"
-                        value={singleLookup}
+                <div className="col-span-full row-start-3 flex flex-wrap items-center gap-3 lg:col-span-1">
+                  <button
+                    className="btn btn-primary"
+                    disabled={lookupMutation.isPending || !searchTextValue}
+                    type="submit"
+                  >
+                    {lookupMutation.isPending ? (
+                      <span
+                        aria-hidden="true"
+                        className="loading loading-spinner loading-sm"
                       />
-                      <button
-                        className="btn btn-primary whitespace-nowrap"
-                        disabled={!singleLookupValue}
-                        onClick={openSingleLookup}
-                        type="button"
-                      >
-                        Open Details
-                      </button>
-                    </div>
-                  </div>
+                    ) : null}
+                    Lookup Users
+                  </button>
+                  <button
+                    className="btn btn-outline"
+                    disabled={!hasLookupStateToClear}
+                    onClick={() => {
+                      setSearchText('');
+                      setSelectedSearchType(defaultSearchType);
+                      lookupMutation.reset();
+                      setSelectedResult(null);
+                    }}
+                    type="button"
+                  >
+                    Clear
+                  </button>
                 </div>
+
+                <button
+                  className="btn btn-primary col-start-1 row-start-5 whitespace-nowrap sm:col-start-2 sm:row-start-4 sm:justify-self-start lg:col-start-3 lg:row-start-3"
+                  disabled={!singleLookupValue}
+                  onClick={openSingleLookup}
+                  type="button"
+                >
+                  Open Details
+                </button>
               </form>
             </div>
           </section>

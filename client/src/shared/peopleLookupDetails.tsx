@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { type MouseEvent, useState } from 'react';
 
 export interface PeopleSearchResult {
   bannerPidm?: string | null;
@@ -149,11 +149,13 @@ const detailGroupOrder: DetailGroup[] = [
 
 export function PeopleDetailsPanel({
   allowSensitiveInfo,
+  groupHeading: GroupHeading = 'h3',
   result,
   showAffiliations = true,
   showSearchField = true,
 }: {
   allowSensitiveInfo: boolean;
+  groupHeading?: 'h2' | 'h3';
   result: PeopleSearchResult;
   showAffiliations?: boolean;
   showSearchField?: boolean;
@@ -188,9 +190,9 @@ export function PeopleDetailsPanel({
     <div className="space-y-5">
       {showAffiliations && activeAffiliations.length > 0 ? (
         <section className="space-y-2">
-          <h3 className="text-xs font-semibold uppercase tracking-wide text-base-content/80">
+          <GroupHeading className="text-xs font-semibold uppercase tracking-wide text-base-content/80">
             Affiliations
-          </h3>
+          </GroupHeading>
           <PeopleAffiliations result={result} />
         </section>
       ) : null}
@@ -204,9 +206,9 @@ export function PeopleDetailsPanel({
 
         return (
           <section className="space-y-2" key={group}>
-            <h3 className="text-xs font-semibold uppercase tracking-wide text-base-content/80">
+            <GroupHeading className="text-xs font-semibold uppercase tracking-wide text-base-content/80">
               {detailGroupLabels[group]}
-            </h3>
+            </GroupHeading>
             <div className="grid gap-2 sm:grid-cols-2">
               {fields.map((field) => (
                 <DetailValue
@@ -264,13 +266,13 @@ function DetailValue({
   value: string;
 }) {
   return (
-    <div className="group rounded-lg border border-base-300 bg-base-200/30 px-3 py-2">
+    <div className="group min-w-0 rounded-lg border border-base-300 bg-base-200/30 px-3 py-2">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="text-xs font-medium uppercase tracking-wide text-base-content/90">
             {label}
           </div>
-          <div className="break-words font-medium">{value}</div>
+          <div className="wrap-anywhere font-medium">{value}</div>
         </div>
         <div className="flex shrink-0 items-center">
           {detailsHref ? (
@@ -325,9 +327,9 @@ function CopyValueButton({ label, value }: { label: string; value: string }) {
         ? 'Copy failed'
         : `Copy ${label}`;
 
-  const copy = async () => {
+  const copy = async (event: MouseEvent<HTMLButtonElement>) => {
     try {
-      await copyText(value);
+      await copyText(value, event.currentTarget);
       setStatus('copied');
     } catch {
       setStatus('failed');
@@ -335,59 +337,65 @@ function CopyValueButton({ label, value }: { label: string; value: string }) {
   };
 
   return (
-    <button
-      aria-label={title}
-      className="btn btn-ghost btn-xs btn-circle opacity-70 transition-opacity group-hover:opacity-100 focus:opacity-100"
-      onBlur={() => setStatus('idle')}
-      onClick={copy}
-      onMouseLeave={() => setStatus('idle')}
-      title={title}
-      type="button"
-    >
-      {status === 'copied' ? (
-        <svg
-          aria-hidden="true"
-          className="h-4 w-4"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            d="M5 13l4 4L19 7"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-          />
-        </svg>
-      ) : (
-        <svg
-          aria-hidden="true"
-          className="h-4 w-4"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            d="M8 7a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-8a2 2 0 0 1-2-2V7Z"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-          />
-          <path
-            d="M16 5V4a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-          />
-        </svg>
-      )}
-    </button>
+    <>
+      <button
+        aria-label={`Copy ${label}`}
+        className="btn btn-ghost btn-xs btn-circle opacity-70 transition-opacity group-hover:opacity-100 focus:opacity-100"
+        onBlur={() => setStatus('idle')}
+        onClick={copy}
+        onMouseLeave={() => setStatus('idle')}
+        title={title}
+        type="button"
+      >
+        {status === 'copied' ? (
+          <svg
+            aria-hidden="true"
+            className="h-4 w-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M5 13l4 4L19 7"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+            />
+          </svg>
+        ) : (
+          <svg
+            aria-hidden="true"
+            className="h-4 w-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M8 7a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-8a2 2 0 0 1-2-2V7Z"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+            />
+            <path
+              d="M16 5V4a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+            />
+          </svg>
+        )}
+      </button>
+      <span className="sr-only" role="status">
+        {status === 'copied' && `${label} copied.`}
+        {status === 'failed' && `Could not copy ${label}.`}
+      </span>
+    </>
   );
 }
 
-async function copyText(text: string) {
+async function copyText(text: string, button: HTMLButtonElement) {
   if (navigator.clipboard && window.isSecureContext) {
     await navigator.clipboard.writeText(text);
     return;
@@ -395,20 +403,23 @@ async function copyText(text: string) {
 
   const textArea = document.createElement('textarea');
   textArea.value = text;
+  textArea.tabIndex = -1;
   textArea.setAttribute('readonly', '');
   textArea.style.position = 'fixed';
   textArea.style.top = '-9999px';
 
-  document.body.append(textArea);
-  textArea.focus();
-  textArea.select();
+  const container = button.closest('dialog[open]') ?? document.body;
+  container.append(textArea);
 
   try {
+    textArea.focus({ preventScroll: true });
+    textArea.select();
     if (!document.execCommand('copy')) {
       throw new Error('Copy command was unsuccessful.');
     }
   } finally {
     textArea.remove();
+    button.focus({ preventScroll: true });
   }
 }
 

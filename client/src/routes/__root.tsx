@@ -44,5 +44,10 @@ const RootLayout = () => {
 
 export const Route = createRootRouteWithContext<RouterContext>()({
   component: RootLayout,
-  notFoundComponent: () => <div>404 - Not Found!</div>,
+  notFoundComponent: () => (
+    <>
+      <title>Page not found | Who</title>
+      <h1>404 - Not Found!</h1>
+    </>
+  ),
 });

@@ -44,6 +44,15 @@ body {
   color: var(--color-base-content);
 }
 
+:is(.input, .textarea, .select):not(:focus-within, :disabled) {
+  --input-color: color-mix(in srgb, var(--color-base-content) 60%, transparent);
+}
+
+:is(input, textarea)::placeholder {
+  color: color-mix(in srgb, var(--color-base-content) 75%, transparent);
+  opacity: 1;
+}
+
 [data-theme='who-dark'] .uc-davis-wordmark,
 [data-theme='who-dark'] .who-logo {
   filter: brightness(0) invert(1);
@@ -79,9 +88,11 @@ body {
   }
 }
 
-#blue_float {
-  transform-origin: center;
-  animation: blue-float-drift 8s ease-in-out infinite;
+@media (prefers-reduced-motion: no-preference) {
+  #blue_float {
+    transform-origin: center;
+    animation: blue-float-drift 4s ease-in-out;
+  }
 }
 
 @keyframes blue-float-drift {

@@ -17,6 +17,7 @@ import {
   type FormEvent,
   type KeyboardEvent,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -322,9 +323,7 @@ function hasLookupIssue(result: PeopleSearchResult) {
   );
 }
 
-function submitLookupFromKeyboard(
-  event: KeyboardEvent<HTMLTextAreaElement>
-) {
+function submitLookupFromKeyboard(event: KeyboardEvent<HTMLTextAreaElement>) {
   if ((!event.ctrlKey && !event.metaKey) || event.key !== 'Enter') {
     return;
   }
@@ -354,7 +353,6 @@ function OpenDetailPageLink({
 }
 export function PeopleLookup() {
   const navigate = useNavigate();
-  const valuesFieldRef = useRef<HTMLTextAreaElement>(null);
   const [searchText, setSearchText] = useState('');
   const [selectedSearchType, setSelectedSearchType] =
     useState<PeopleLookupSearchType>(defaultSearchType);
@@ -423,13 +421,12 @@ export function PeopleLookup() {
     : standardCsvColumns;
 
   useEffect(() => {
+    if (selectedResult) {
+      return;
+    }
+
     const selectSearchType = (event: globalThis.KeyboardEvent) => {
-      if (
-        event.altKey ||
-        !event.ctrlKey ||
-        event.metaKey ||
-        event.shiftKey
-      ) {
+      if (event.altKey || !event.ctrlKey || event.metaKey || event.shiftKey) {
         return;
       }
 
@@ -447,7 +444,7 @@ export function PeopleLookup() {
 
     window.addEventListener('keydown', selectSearchType);
     return () => window.removeEventListener('keydown', selectSearchType);
-  }, [searchOptions]);
+  }, [searchOptions, selectedResult]);
 
   const columns = useMemo<ColumnDef<PeopleSearchResult>[]>(
     () => [
@@ -546,12 +543,6 @@ export function PeopleLookup() {
   const handleSingleLookupKeyDown = (
     event: KeyboardEvent<HTMLInputElement>
   ) => {
-    if (event.key === 'Tab' && !event.shiftKey) {
-      event.preventDefault();
-      valuesFieldRef.current?.focus();
-      return;
-    }
-
     if (event.key !== 'Enter') {
       return;
     }
@@ -564,10 +555,14 @@ export function PeopleLookup() {
     lookupMutation.error instanceof HttpError
       ? String(lookupMutation.error.body || lookupMutation.error.message)
       : lookupMutation.error?.message;
+  const lookupNotice =
+    lookupMutation.data?.message ||
+    (lookupMutation.isSuccess && !hasResults ? 'No results found.' : '');
 
   return (
-    <div>
-      <main className="container">
+    <>
+      <title>Bulk User Lookup | Who</title>
+      <div className="container">
         <div className="mx-auto pt-20 space-y-8">
           <header className="space-y-3">
             <div className="flex items-center gap-3">
@@ -576,24 +571,27 @@ export function PeopleLookup() {
             </div>
             <div className="max-w-3xl space-y-2 text-base-content/70">
               <p className="leading-relaxed">
-                Choose a search field, paste your values, then submit the lookup.
+                Choose a search field, paste your values, then submit the
+                lookup.
                 <br />
                 We will try to detect the search type when you paste, so review
                 the selected field before submitting.
               </p>
-              <p className="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm">
+              <p className="flex flex-col items-start gap-x-3 gap-y-2 text-sm md:flex-row md:flex-wrap md:items-center">
                 <span className="font-semibold text-base-content/80">
                   Keyboard shortcuts
                 </span>
-                <span className="inline-flex items-center gap-1">
-                  <kbd className="kbd kbd-sm">Ctrl</kbd>
-                  <span>+</span>
+                <span>
+                  <kbd className="kbd kbd-sm">Ctrl</kbd> +{' '}
                   <span className="underline underline-offset-2">
                     underlined letter
-                  </span>
-                  <span>switches what to search.</span>
+                  </span>{' '}
+                  switches what to search.
                 </span>
-                <span aria-hidden="true" className="text-base-content/30">
+                <span
+                  aria-hidden="true"
+                  className="hidden text-base-content/30 md:inline"
+                >
                   •
                 </span>
                 <span className="inline-flex items-center gap-1">
@@ -612,34 +610,33 @@ export function PeopleLookup() {
             <div className="card-body">
               <form className="space-y-6" onSubmit={submitLookup}>
                 <div className="space-y-4">
-                  <div className="form-control w-full">
-                    <span className="label-text mb-2 font-medium uppercase">
+                  <fieldset className="min-w-0">
+                    <legend className="mb-2 font-medium uppercase">
                       Search For
-                    </span>
-                    <div
-                      aria-label="Search for"
-                      className="tabs tabs-box w-full overflow-x-auto mt-2"
-                      role="tablist"
-                    >
+                    </legend>
+                    <div className="flex flex-wrap gap-1 rounded-box bg-base-200 p-1">
                       {searchOptions.map((option) => {
                         const shortcutIndex = option.label
                           .toLowerCase()
                           .indexOf(option.shortcut);
 
                         return (
-                          <button
-                            aria-keyshortcuts={`Control+${option.shortcut.toUpperCase()}`}
-                            aria-selected={activeSearchType === option.value}
-                            className={`tab h-auto min-h-10 whitespace-nowrap ${
-                              activeSearchType === option.value
-                                ? 'tab-active'
-                                : ''
-                            }`}
+                          <label
+                            className="inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-field px-3 text-sm text-base-content hover:bg-base-100 has-checked:bg-base-100 has-checked:font-semibold has-checked:shadow-sm has-focus-visible:outline-2 has-focus-visible:outline-primary"
                             key={option.value}
-                            onClick={() => setSelectedSearchType(option.value)}
-                            role="tab"
-                            type="button"
                           >
+                            <input
+                              aria-keyshortcuts={`Control+${option.shortcut.toUpperCase()}`}
+                              aria-label={option.label}
+                              checked={activeSearchType === option.value}
+                              className="size-4 shrink-0 accent-primary"
+                              name="search-type"
+                              onChange={() =>
+                                setSelectedSearchType(option.value)
+                              }
+                              type="radio"
+                              value={option.value}
+                            />
                             <span>
                               {option.label.slice(0, shortcutIndex)}
                               <span className="underline underline-offset-2">
@@ -647,11 +644,11 @@ export function PeopleLookup() {
                               </span>
                               {option.label.slice(shortcutIndex + 1)}
                             </span>
-                          </button>
+                          </label>
                         );
                       })}
                     </div>
-                  </div>
+                  </fieldset>
                   <label className="form-control w-full">
                     <span className="label-text mb-2 font-medium uppercase">
                       Values
@@ -663,7 +660,6 @@ export function PeopleLookup() {
                       onKeyDown={submitLookupFromKeyboard}
                       onPaste={detectSearchTypeForPaste}
                       placeholder={selectedSearchOption.placeholder}
-                      ref={valuesFieldRef}
                       value={searchText}
                     />
                   </label>
@@ -677,7 +673,10 @@ export function PeopleLookup() {
                       type="submit"
                     >
                       {lookupMutation.isPending ? (
-                        <span className="loading loading-spinner loading-sm"></span>
+                        <span
+                          aria-hidden="true"
+                          className="loading loading-spinner loading-sm"
+                        />
                       ) : null}
                       Lookup Users
                     </button>
@@ -697,14 +696,17 @@ export function PeopleLookup() {
                   </div>
 
                   <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                    <span className="text-sm font-medium whitespace-nowrap text-base-content/70">
+                    <label
+                      className="text-sm font-medium whitespace-nowrap text-base-content/70"
+                      htmlFor="single-user-lookup"
+                    >
                       Single user
-                    </span>
-                    <div className="flex w-full gap-2 sm:w-auto">
+                    </label>
+                    <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
                       <input
                         aria-label="Single user lookup"
-                        autoFocus
                         className="input input-bordered w-full sm:w-80"
+                        id="single-user-lookup"
                         onChange={(event) =>
                           setSingleLookup(event.target.value)
                         }
@@ -729,25 +731,32 @@ export function PeopleLookup() {
           </section>
 
           {mutationError ? (
-            <div className="alert alert-error">
+            <div className="alert alert-error" role="alert">
               <span>{mutationError}</span>
             </div>
           ) : null}
 
-          {lookupMutation.data && !hasResults ? (
-            <div
-              className="rounded-lg border-2 border-dashed border-base-300 bg-base-200/50 p-8 text-center"
-              role="status"
-            >
-              <p className="text-xl font-semibold">
-                {lookupMutation.data.message || 'No results found.'}
+          <div
+            aria-atomic="true"
+            className={lookupNotice ? undefined : 'sr-only'}
+            role="status"
+          >
+            {lookupMutation.isPending && 'Looking up users.'}
+            {lookupNotice ? (
+              <p
+                className={
+                  hasResults
+                    ? 'alert border-info bg-base-200 text-base-content'
+                    : 'rounded-lg border-2 border-dashed border-base-300 bg-base-200/50 p-8 text-center text-xl font-semibold'
+                }
+              >
+                {lookupNotice}
               </p>
-            </div>
-          ) : lookupMutation.data?.message ? (
-            <div className="alert alert-info">
-              <span>{lookupMutation.data.message}</span>
-            </div>
-          ) : null}
+            ) : (
+              hasResults &&
+              `Lookup complete. ${results.length} ${results.length === 1 ? 'result' : 'results'}.`
+            )}
+          </div>
 
           {hasResults ? (
             <section className="space-y-4">
@@ -763,6 +772,12 @@ export function PeopleLookup() {
                 columns={columns}
                 data={results}
                 filterPlaceholder="Search results..."
+                getRowLabel={(result) =>
+                  result.displayName ||
+                  result.searchValue ||
+                  result.kerbId ||
+                  ''
+                }
                 globalFilter="left"
                 initialState={{ pagination: { pageSize: 25 } }}
                 onRowClick={setSelectedResult}
@@ -800,7 +815,7 @@ export function PeopleLookup() {
             </section>
           ) : null}
         </div>
-      </main>
+      </div>
 
       {selectedResult ? (
         <PersonDetailsModal
@@ -809,7 +824,7 @@ export function PeopleLookup() {
           result={selectedResult}
         />
       ) : null}
-    </div>
+    </>
   );
 }
 
@@ -823,13 +838,34 @@ function PersonDetailsModal({
   result: PeopleSearchResult;
 }) {
   const detailKerbId = getDetailId(result);
+  const dialogRef = useRef<HTMLDialogElement>(null);
+
+  useLayoutEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog) {
+      return;
+    }
+
+    dialog.showModal();
+    return () => dialog.close();
+  }, []);
 
   return (
-    <div className="modal modal-open">
+    <dialog
+      aria-labelledby="person-details-title"
+      className="modal"
+      onCancel={(event) => {
+        event.preventDefault();
+        onClose();
+      }}
+      ref={dialogRef}
+    >
       <div className="modal-box max-w-3xl">
         <div className="flex items-start justify-between gap-4">
-          <div>
-            <h3 className="text-lg font-bold">Person Details</h3>
+          <div className="min-w-0 wrap-anywhere">
+            <h2 className="text-lg font-bold" id="person-details-title">
+              Person Details
+            </h2>
             <p className="text-sm text-base-content/70">
               {result.displayName || result.searchValue || 'Lookup result'}
             </p>
@@ -869,8 +905,9 @@ function PersonDetailsModal({
         aria-label="Close details overlay"
         className="modal-backdrop"
         onClick={onClose}
+        tabIndex={-1}
         type="button"
       />
-    </div>
+    </dialog>
   );
 }

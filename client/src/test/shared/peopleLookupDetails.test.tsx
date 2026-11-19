@@ -1,5 +1,6 @@
 import { cleanup, render, screen } from '@testing-library/react';
-import { afterEach, describe, expect, it } from 'vitest';
+import { userEvent } from '@testing-library/user-event';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   detailFields,
   PeopleDetailsPanel,
@@ -112,6 +113,53 @@ describe('PeopleDetailsPanel', () => {
       detailsLink.compareDocumentPosition(copyButton) &
         Node.DOCUMENT_POSITION_FOLLOWING
     ).toBeTruthy();
+  });
+
+  it('restores keyboard focus and announces a fallback copy inside a dialog', async () => {
+    const user = userEvent.setup();
+    render(
+      <dialog aria-label="Person details" open>
+        <PeopleDetailsPanel allowSensitiveInfo={false} result={baseResult} />
+      </dialog>
+    );
+    const dialog = screen.getByRole('dialog');
+    const copyButton = screen.getByRole('button', {
+      name: 'Copy Display Name',
+    });
+    const execCommand = vi.fn(() => {
+      const field = dialog.querySelector('textarea');
+      return (
+        field === document.activeElement &&
+        field?.value === baseResult.displayName
+      );
+    });
+    vi.stubGlobal('isSecureContext', false);
+    const original = Object.getOwnPropertyDescriptor(document, 'execCommand');
+    Object.defineProperty(document, 'execCommand', {
+      configurable: true,
+      value: execCommand,
+    });
+
+    try {
+      copyButton.focus();
+      await user.keyboard('{Enter}');
+
+      expect(execCommand).toHaveBeenCalledWith('copy');
+      expect(await screen.findByText('Display Name copied.')).toHaveAttribute(
+        'role',
+        'status'
+      );
+      expect(copyButton).toHaveFocus();
+      expect(copyButton).toHaveAccessibleName('Copy Display Name');
+      expect(dialog.querySelector('textarea')).toBeNull();
+    } finally {
+      if (original) {
+        Object.defineProperty(document, 'execCommand', original);
+      } else {
+        Reflect.deleteProperty(document, 'execCommand');
+      }
+      vi.unstubAllGlobals();
+    }
   });
 
   it('can hide the search field for the dedicated detail page', () => {
